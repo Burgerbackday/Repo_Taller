@@ -1,0 +1,9 @@
+Datos recibidos: Array
+(
+    [accion] => actualizar
+    [id] => 2
+    [nombre] => testDoe
+    [especialidad] => Corte
+)
+
+Ejecutando UPDATE para ID: 2, Nombre: testDoe, Especialidad: Corte
