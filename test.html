@@ -258,6 +258,38 @@
   </div>
 `};
 
+    // Variable global para la instancia de la gráfica de pedidos
+    let graficaPedidosInstance = null;
+
+    function inicializarGraficas() {
+        const canvasPedidos = document.getElementById("graficaPedidos");
+        if (canvasPedidos) {
+            const ctxPedidos = canvasPedidos.getContext('2d');
+            if (graficaPedidosInstance) {
+                graficaPedidosInstance.destroy();
+            }
+            graficaPedidosInstance = new Chart(ctxPedidos, {
+                type: 'doughnut',
+                data: {
+                    labels: ["En proceso", "Completado", "Pendiente"],
+                    datasets: [{
+                        label: "Pedidos",
+                        data: [14, 5, 5],
+                        backgroundColor: ["#0d9488", "#b45309", "#a855f7"],
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: "bottom"
+                        }
+                    }
+                }
+            });
+        }
+    }
+
     function mostrarSeccion(nombre) {
       content.innerHTML = secciones[nombre];
 
@@ -319,51 +351,6 @@
             container.innerHTML = `<p class="text-center text-red-500">Error loading fichas.</p>`;
           });
       }
-      function inicializarGraficas() {
-  if (document.getElementById("graficaPedidos")) {
-    new Chart(document.getElementById("graficaPedidos"), {
-      type: 'doughnut',
-      data: {
-        labels: ["En proceso", "Completado", "Pendiente"],
-        datasets: [{
-          label: "Pedidos",
-          data: [14, 5, 5],
-          backgroundColor: ["#0d9488", "#b45309", "#a855f7"],
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: "bottom"
-          }
-        }
-      }
-    });
-  }
-
-  if (document.getElementById("graficaDisponibilidad")) {
-    new Chart(document.getElementById("graficaDisponibilidad"), {
-      type: 'bar',
-      data: {
-        labels: ["Tela de algodón", "Hilo negro", "Botones", "Cremalleras", "Forro de tela"],
-        datasets: [{
-          label: "Cantidad disponible",
-          data: [500, 0, 1000, 300, 600],
-          backgroundColor: "#0d9488"
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    });
-  }
-}
 
 // Llamar cuando se muestra la sección resumen
 const originalMostrarSeccion = mostrarSeccion;
@@ -423,6 +410,50 @@ mostrarSeccion = function(nombre) {
   }
   if (nombre === "resumen") {
     setTimeout(inicializarGraficas, 100); // dar tiempo a que se renderice el DOM
+
+    // Cargar datos de inventario y actualizar la gráfica de disponibilidad
+    fetch("api/inventario/get_inventario.php")
+        .then(res => res.json())
+        .then(data => {
+            let inventarioArray = [];
+            if (Array.isArray(data)) {
+                inventarioArray = data;
+            } else if (data.success && Array.isArray(data.data)) {
+                inventarioArray = data.data;
+            }
+            const nombres = inventarioArray.map(item => item.Material);
+            const cantidades = inventarioArray.map(item => parseInt(item.cantidad_disp, 10));
+
+            const canvasDisponibilidad = document.getElementById("graficaDisponibilidad");
+            if (canvasDisponibilidad) {
+                const ctx = canvasDisponibilidad.getContext('2d');
+                if (window.graficaDisponibilidadInstance) {
+                    window.graficaDisponibilidadInstance.destroy();
+                }
+                window.graficaDisponibilidadInstance = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: nombres,
+                        datasets: [{
+                            label: 'Cantidad disponible',
+                            data: cantidades,
+                            backgroundColor: '#0d9488'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            }
+        })
+        .catch(err => {
+            console.error("Error cargando la gráfica de disponibilidad:", err);
+        });
   }
 
   // --- Cargar inventario dinámicamente al mostrar logística ---
@@ -441,7 +472,9 @@ mostrarSeccion = function(nombre) {
           const tbody = tablas[1].querySelector("tbody");
           if (tbody) {
             tbody.innerHTML = ""; // Limpiar contenido anterior
+            let inventarioArray = [];
             if (Array.isArray(data)) {
+              inventarioArray = data;
               data.forEach(item => {
                 const tr = document.createElement("tr");
                 tr.className = "border-t";
@@ -455,6 +488,7 @@ mostrarSeccion = function(nombre) {
                 tbody.appendChild(tr);
               });
             } else if (data.success && Array.isArray(data.data)) {
+              inventarioArray = data.data;
               data.data.forEach(item => {
                 const tr = document.createElement("tr");
                 tr.className = "border-t";
@@ -472,6 +506,7 @@ mostrarSeccion = function(nombre) {
               tr.innerHTML = `<td colspan="5" class="p-2 border text-center text-red-500">No data available or invalid format.</td>`;
               tbody.appendChild(tr);
             }
+            // --- Ya no actualizar la gráfica de disponibilidad aquí ---
           }
         }
       })
@@ -501,6 +536,52 @@ mostrarSeccion = function(nombre) {
     
     // Mostrar sección inicial según jerarquía
     mostrarSeccion(jerarquia === "2" ? "asignacion" : "resumen");
+
+    // Forzar carga inmediata de la gráfica de disponibilidad si arrancamos en "resumen"
+    if (jerarquia !== "2") {
+        fetch("api/inventario/get_inventario.php")
+            .then(res => res.json())
+            .then(data => {
+                let inventarioArray = [];
+                if (Array.isArray(data)) {
+                    inventarioArray = data;
+                } else if (data.success && Array.isArray(data.data)) {
+                    inventarioArray = data.data;
+                }
+                const nombres = inventarioArray.map(item => item.Material);
+                const cantidades = inventarioArray.map(item => parseInt(item.cantidad_disp, 10));
+
+                const canvasDisponibilidad = document.getElementById("graficaDisponibilidad");
+                if (canvasDisponibilidad) {
+                    const ctx = canvasDisponibilidad.getContext('2d');
+                    if (window.graficaDisponibilidadInstance) {
+                        window.graficaDisponibilidadInstance.destroy();
+                    }
+                    window.graficaDisponibilidadInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: nombres,
+                            datasets: [{
+                                label: 'Cantidad disponible',
+                                data: cantidades,
+                                backgroundColor: '#0d9488'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: {
+                                y: {
+                                    beginAtZero: true
+                                }
+                            }
+                        }
+                    });
+                }
+            })
+            .catch(err => {
+                console.error("Error cargando la gráfica inicial de disponibilidad:", err);
+            });
+    }
     
     function asignarTarea(id, nombre) {
       fetch("api/tareas/get_tareas.php")
