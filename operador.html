@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Panel del Operador</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-white text-gray-800">
+
+  <!-- Contenedor principal -->
+  <div id="content" class="pb-24 px-4 pt-6"></div>
+
+  <!-- Menú inferior -->
+  <div class="fixed bottom-0 w-full bg-white flex justify-around items-center py-3 border-t shadow-md">
+    <div id="btn-usuario" class="relative group flex flex-col items-center text-gray-500 hover:text-teal-600">
+      <button class="focus:outline-none mt-1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.004 9.004 0 0112 15c2.003 0 3.864.66 5.304 1.768M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+      </button>
+      <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 bg-white border rounded shadow-md w-32 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+        <div id="perfil-info" style="display: none;" class="px-4 py-2 border-b text-sm text-gray-600">
+          <div><strong>Persona:</strong> <span id="info-usuario">-</span></div>
+          <div><strong>Jerarquía:</strong> <span id="info-jerarquia">-</span></div>
+        </div>
+        <button id="btn-ver-perfil" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">View Profile</button>
+        <button onclick="window.location.href='index.html'" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Sign Out</button>
+      </div>
+    </div>
+
+    <button onclick="mostrarSeccion('asignacion')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-asignacion">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+      </svg>
+    </button>
+  </div>
+
+  <script>
+    const jerarquia = localStorage.getItem("jerarquiaUsuario");
+    const nombreUsuario = localStorage.getItem("nombreUsuario");
+    if (jerarquia !== "2") {
+      window.location.href = "index.html";
+    } else {
+      document.getElementById("info-usuario").textContent = nombreUsuario;
+      document.getElementById("info-jerarquia").textContent = "Obrero";
+    }
+
+    document.getElementById("btn-ver-perfil").addEventListener("click", () => {
+      const perfilDiv = document.getElementById("perfil-info");
+      perfilDiv.style.display = (perfilDiv.style.display === "none") ? "block" : "none";
+    });
+
+    function mostrarSeccion(nombre) {
+      if (nombre !== "asignacion") return;
+
+      document.getElementById("content").innerHTML = `
+        <h2 class="text-2xl font-bold mb-4">Mi Tarea Asignada</h2>
+        <div id="contenedor-disponibles" class="grid grid-cols-1 gap-4 text-sm"></div>
+      `;
+
+      fetch("api/tareas/get_operadores.php")
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) {
+            const miTarea = data.find(op => op.nombre === nombreUsuario);
+            if (miTarea) {
+              document.getElementById("contenedor-disponibles").innerHTML = `
+                <div class="p-6 bg-white border-2 border-teal-600 rounded-lg shadow-lg col-span-2">
+                  <h2 class="text-3xl font-bold text-teal-700 mb-4">Tarea Asignada</h2>
+                  <h3 class="text-xl font-semibold text-gray-800">${miTarea.tarea_asignada}</h3>
+                  <p class="text-lg mt-3 text-gray-700">${miTarea.descripcion}</p>
+                </div>
+              `;
+            }
+          }
+        })
+        .catch(err => console.error("Error cargando operadores:", err));
+    }
+
+    mostrarSeccion("asignacion");
+  </script>
+
+</body>
+</html>

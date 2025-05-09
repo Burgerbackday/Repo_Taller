@@ -1,0 +1,875 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Logistica del taller</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    th, td {
+      border: 1px solid #ddd;
+      padding: 8px;
+    }
+
+    th {
+      background-color: #f2f2f2;
+      text-align: left;
+    }
+  </style>
+</head>
+<body class="bg-white text-gray-800">
+
+  <!-- Contenido principal -->
+  <div id="content" class="pb-24 px-4 pt-6"></div>
+
+  <!-- Menú inferior -->
+<div class="fixed bottom-0 w-full bg-white flex justify-around items-center py-3 border-t shadow-md">
+  <div id="btn-usuario" class="relative group flex flex-col items-center text-gray-500 hover:text-teal-600">
+    <button class="focus:outline-none mt-1">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.004 9.004 0 0112 15c2.003 0 3.864.66 5.304 1.768M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>      
+    </button>
+    <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 bg-white border rounded shadow-md w-32 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+      <div id="perfil-info" style="display: none;" class="px-4 py-2 border-b text-sm text-gray-600">
+        <div><strong>Persona:</strong> <span id="info-usuario">-</span></div>
+        <div><strong>Jerarquía:</strong> <span id="info-jerarquia">-</span></div>
+      </div>
+      <button id="btn-ver-perfil" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">View Profile</button>
+      <button onclick="window.location.href='index.html'" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Sign Out</button>
+    </div>
+  </div>
+  
+  <button onclick="mostrarSeccion('resumen')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-resumen">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18V3H3zm4 14h2v-2H7v2zm0-4h2v-2H7v2zm0-4h2V7H7v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2zm0-4h2V7h-2v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2z" />
+    </svg>
+   
+  </button>
+  
+
+  <button onclick="mostrarSeccion('asignacion')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-asignacion">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+    </svg>
+   
+  </button>
+
+  <button onclick="mostrarSeccion('logistica')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-logistica">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2s-3 1.343-3 3 1.343 3 3 3zM6.343 16.657A8 8 0 1117.657 5.343 8 8 0 016.343 16.657z" />
+    </svg>
+    
+  </button>
+
+  <button onclick="mostrarSeccion('fichas')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-fichas">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6M9 9h6m-6 4h6m-6 4h6M5 5h.01M5 9h.01M5 13h.01M5 17h.01" />
+    </svg>
+    
+  </button>
+</div>
+
+  </div>
+  <div id="notificacion" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded shadow-lg text-sm hidden z-50">
+    Actualización exitosa
+  </div>
+  <script>
+    // Obtener los datos del usuario desde localStorage
+    const jerarquia = localStorage.getItem("jerarquiaUsuario");
+    const nombreUsuario = localStorage.getItem("nombreUsuario");
+
+    // Redirigir al login si no hay sesión activa
+    if (!jerarquia) {
+      window.location.href = "index.html";
+    } else {
+      console.log("Usuario autenticado:", nombreUsuario, "| Jerarquía:", jerarquia);
+      const usuarioSpan = document.getElementById("info-usuario");
+      const jerarquiaSpan = document.getElementById("info-jerarquia");
+      if (usuarioSpan) usuarioSpan.textContent = nombreUsuario;
+      if (jerarquiaSpan) jerarquiaSpan.textContent = jerarquia === "1" ? "Administrador" : "Obrero";
+    }
+
+    document.getElementById("btn-ver-perfil").addEventListener("click", () => {
+      const perfilDiv = document.getElementById("perfil-info");
+      if (perfilDiv.style.display === "none") {
+        perfilDiv.style.display = "block";
+      } else {
+        perfilDiv.style.display = "none";
+      }
+    });
+  </script>
+  <!-- Script -->
+  <script>
+    const content = document.getElementById("content");
+    const botones = {
+      resumen: document.getElementById("btn-resumen"),
+      asignacion: document.getElementById("btn-asignacion"),
+      logistica: document.getElementById("btn-logistica"),
+      fichas: document.getElementById("btn-fichas")
+    };
+
+    const secciones = {
+      fichas: `
+<h2 class="text-2xl font-bold mb-4 text-center">Fichas Técnicas de Pantalones</h2>
+<div id="fichas-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+`,
+      resumen: `
+  <h2 class="text-2xl font-bold mb-4">Pedidos</h2>
+  <div class="mb-8 flex justify-center">
+  <canvas id="graficaPedidos" style="max-width: 400px; max-height: 400px;"></canvas>
+</div>
+
+  <h2 class="text-2xl font-bold mb-4">Disponibilidad</h2>
+  <canvas id="graficaDisponibilidad" class="mb-8"></canvas>
+`,
+
+      asignacion: `
+  <h2 class="text-2xl font-bold mb-4">Operadores Disponibles</h2>
+  <div id="contenedor-disponibles" class="grid grid-cols-2 gap-4 text-sm mb-8"></div>
+  <h2 class="text-2xl font-bold mb-4">Gestión de Operadores</h2>
+  <div id="contenedor-operadores" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm"></div>
+`,
+      logistica: `
+  <h2 class="text-xl font-semibold mb-4">Registro de ventas completadas</h2>
+  <div class="bg-white p-4 rounded shadow border mb-6">
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+      <div>
+        <label class="block text-sm font-medium">Fecha inicio</label>
+        <input type="date" class="w-full border rounded p-2 text-sm" value="2025-04-07" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Fecha fin</label>
+        <input type="date" class="w-full border rounded p-2 text-sm" value="2025-04-07" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Responsable</label>
+        <select class="w-full border rounded p-2 text-sm">
+          <option>Ana Moreno</option>
+        </select>
+      </div>
+    </div>
+    <button class="bg-teal-600 text-white px-4 py-2 rounded text-sm">Aplicar filtros</button>
+
+    <div class="mt-6">
+      <button class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs">Cliente Interno</button>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
+      <div>
+        <label class="block text-sm font-medium">Cliente</label>
+        <input type="text" class="w-full border rounded p-2 text-sm" value="Cliente Interno" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Producto</label>
+        <select class="w-full border rounded p-2 text-sm">
+          <option>Modelo A - Talla S</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Cantidad</label>
+        <input type="number" class="w-full border rounded p-2 text-sm" value="500" />
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Precio Unitario</label>
+        <input type="number" class="w-full border rounded p-2 text-sm" value="25.5" />
+      </div>
+    </div>
+
+    <div class="mt-4 text-sm">
+      <label class="block font-medium mb-1">Estado del Pedido</label>
+      <label class="mr-4"><input type="radio" name="estado" checked /> Pendiente</label>
+      <label class="mr-4"><input type="radio" name="estado" /> Procesado</label>
+      <label class="mr-4"><input type="radio" name="estado" /> Entregado</label>
+      <label><input type="radio" name="estado" /> Cerrado</label>
+    </div>
+
+    <div class="mt-4 text-sm">
+      <strong>Total: <span class="text-teal-600">$255</span></strong> <span class="text-gray-500">(Cálculo automático: Cantidad × Precio Unitario)</span>
+    </div>
+
+    <div class="mt-4 flex flex-wrap gap-3">
+      <button class="bg-teal-600 text-white px-4 py-2 rounded text-sm">Confirmar Pedido</button>
+      <button class="bg-gray-200 px-4 py-2 rounded text-sm">Actualizar Estado</button>
+      <button class="bg-green-600 text-white px-4 py-2 rounded text-sm">Marcar como Entregado y Cerrar</button>
+    </div>
+
+    <h3 class="text-lg font-semibold mb-2">Pedidos</h3>
+    <div class="flex justify-between items-center mb-2">
+      <input type="search" class="border p-2 rounded text-sm" placeholder="Search" />
+      <button class="bg-teal-600 text-white px-4 py-1 rounded text-sm">+ Agregar.</button>
+    </div>
+
+    <table class="w-full text-sm border">
+      <thead class="bg-gray-100 text-left">
+        <tr>
+          <th class="p-2 border">ID</th>
+          <th class="p-2 border">MATERIAL</th>
+          <th class="p-2 border">CANTIDAD_DISPONIBLE</th>
+          <th class="p-2 border">CANTIDAD_MINIMA</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-t"><td class="p-2 border">1</td><td class="p-2 border">Jorge Morales</td><td class="p-2 border">Pantalon de Vestir</td><td class="p-2 border">1200</td></tr>
+        <tr class="border-t"><td class="p-2 border">3635</td><td class="p-2 border">Claudia Sheinbaun</td><td class="p-2 border">Pantalon de Mezclilla</td><td class="p-2 border">400</td></tr>
+        <tr class="border-t"><td class="p-2 border">6468</td><td class="p-2 border">Andres Lopez</td><td class="p-2 border">Pantalon de Vestir</td><td class="p-2 border">500</td></tr>
+        <tr class="border-t"><td class="p-2 border">3580</td><td class="p-2 border">Carlos Salinas</td><td class="p-2 border">Jeans</td><td class="p-2 border">999</td></tr>
+        <tr class="border-t"><td class="p-2 border">33312</td><td class="p-2 border">Carlos Salinas</td><td class="p-2 border">Jeans</td><td class="p-2 border">888</td></tr>
+        <!-- Más filas... -->
+      </tbody>
+    </table>
+
+    <h3 class="text-lg font-semibold mb-2 mt-8">Inventario</h3>
+    <div class="flex justify-between items-center mb-2">
+      <input type="search" class="border p-2 rounded text-sm" placeholder="Search" />
+      <button class="bg-teal-600 text-white px-4 py-1 rounded text-sm">+ Agregar.</button>
+    </div>
+
+    <table class="w-full text-sm border">
+      <thead class="bg-gray-100 text-left">
+        <tr>
+          <th class="p-2 border">ID</th>
+          <th class="p-2 border">MATERIAL</th>
+          <th class="p-2 border">CANTIDAD_DISPONIBLE</th>
+          <th class="p-2 border">CANTIDAD_MINIMA</th>
+          <th class="p-2 border">ESTADO</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-t"><td class="p-2 border">1</td><td class="p-2 border">Tela de algodón</td><td class="p-2 border">500</td><td class="p-2 border">100</td><td class="p-2 border">Disponible</td></tr>
+        <tr class="border-t"><td class="p-2 border">2</td><td class="p-2 border">Hilo negro</td><td class="p-2 border">0</td><td class="p-2 border">50</td><td class="p-2 border">No disponible</td></tr>
+        <tr class="border-t"><td class="p-2 border">3</td><td class="p-2 border">Botones</td><td class="p-2 border">1000</td><td class="p-2 border">200</td><td class="p-2 border">Disponible</td></tr>
+        <tr class="border-t"><td class="p-2 border">4</td><td class="p-2 border">Cremalleras</td><td class="p-2 border">300</td><td class="p-2 border">100</td><td class="p-2 border">Disponible</td></tr>
+        <tr class="border-t"><td class="p-2 border">5</td><td class="p-2 border">Forro de tela</td><td class="p-2 border">400</td><td class="p-2 border">150</td><td class="p-2 border">Disponible</td></tr>
+      </tbody>
+    </table>
+    <div class="mt-4 flex flex-wrap gap-3">
+      <button onclick="mostrarFormularioInventario('agregar')" class="bg-green-600 text-white px-4 py-2 rounded text-sm">Agregar Material</button>
+      <button onclick="mostrarFormularioInventario('editar')" class="bg-yellow-500 text-white px-4 py-2 rounded text-sm">Editar Material</button>
+      <button onclick="mostrarFormularioInventario('eliminar')" class="bg-red-600 text-white px-4 py-2 rounded text-sm">Eliminar Material</button>
+    </div>
+  </div>
+`};
+
+    function mostrarSeccion(nombre) {
+      content.innerHTML = secciones[nombre];
+
+      // Colorear el botón activo
+      for (const key in botones) {
+        botones[key].classList.remove("text-teal-600", "font-semibold");
+        botones[key].classList.add("text-gray-500");
+      }
+      botones[nombre].classList.remove("text-gray-500");
+      botones[nombre].classList.add("text-teal-600", "font-semibold");
+
+      // FICHAS DINÁMICAS
+      if (nombre === "fichas") {
+        // Mensaje de consola para depuración
+        console.log("Cargando fichas técnicas...");
+        // Insertar botón + Nueva Ficha antes del contenedor de las fichas
+        const fichasHeader = document.querySelector("#content h2.text-2xl");
+        if (fichasHeader) {
+          const btnDiv = document.createElement("div");
+          btnDiv.className = "flex justify-end mb-4";
+          btnDiv.innerHTML = `<button onclick="mostrarFormularioFicha()" class="bg-teal-600 text-white px-4 py-2 rounded text-sm">+ Nueva Ficha</button>`;
+          fichasHeader.insertAdjacentElement("afterend", btnDiv);
+        }
+        // Cargar fichas técnicas desde la base de datos vía API
+        fetch("api/fichas/get_fichas.php")
+          .then(res => res.json())
+          .then(data => {
+            console.log("Datos recibidos para fichas:", data);  // Línea añadida
+            const container = document.getElementById("fichas-container");
+            if (Array.isArray(data)) {
+              container.innerHTML = "";
+              data.forEach(ficha => {
+                console.log("Ficha individual:", ficha);
+                const card = document.createElement("div");
+                card.className = "bg-white shadow rounded overflow-hidden";
+                card.innerHTML = `
+                  <img src="img/${ficha.sku ? ficha.sku : 'placeholder'}.jpg" alt="${ficha.nombre}" class="w-full h-48 object-cover">
+                  <div class="p-4">
+                    <h3 class="text-lg font-semibold">${ficha.nombre}</h3>
+                    <p class="text-sm text-gray-600 mt-2">${ficha.descripcion}</p>
+                    <div class="mt-2 text-sm text-gray-700">
+                      <p><strong>Botones:</strong> ${ficha.boton}</p>
+                      <p><strong>Cierres:</strong> ${ficha.cierre}</p>
+                      <p><strong>Hilos:</strong> ${ficha.hilo}</p>
+                    </div>
+                  </div>
+                `;
+                container.appendChild(card);
+              });
+            } else {
+              // Si la respuesta no es un array, mostrar error claro
+              container.innerHTML = `<p class="text-center text-red-500">Error: Respuesta inesperada al cargar fichas técnicas.</p>`;
+              console.error("La respuesta de get_fichas.php no es un array:", data);
+            }
+          })
+          .catch(err => {
+            console.error("Error cargando fichas:", err);
+            const container = document.getElementById("fichas-container");
+            container.innerHTML = `<p class="text-center text-red-500">Error loading fichas.</p>`;
+          });
+      }
+      function inicializarGraficas() {
+  if (document.getElementById("graficaPedidos")) {
+    new Chart(document.getElementById("graficaPedidos"), {
+      type: 'doughnut',
+      data: {
+        labels: ["En proceso", "Completado", "Pendiente"],
+        datasets: [{
+          label: "Pedidos",
+          data: [14, 5, 5],
+          backgroundColor: ["#0d9488", "#b45309", "#a855f7"],
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: {
+            position: "bottom"
+          }
+        }
+      }
+    });
+  }
+
+  if (document.getElementById("graficaDisponibilidad")) {
+    new Chart(document.getElementById("graficaDisponibilidad"), {
+      type: 'bar',
+      data: {
+        labels: ["Tela de algodón", "Hilo negro", "Botones", "Cremalleras", "Forro de tela"],
+        datasets: [{
+          label: "Cantidad disponible",
+          data: [500, 0, 1000, 300, 600],
+          backgroundColor: "#0d9488"
+        }]
+      },
+      options: {
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
+}
+
+// Llamar cuando se muestra la sección resumen
+const originalMostrarSeccion = mostrarSeccion;
+mostrarSeccion = function(nombre) {
+  originalMostrarSeccion(nombre);
+    if (nombre === "asignacion") {
+      fetch("api/tareas/get_operadores.php")
+        .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data)) {
+
+          const asignacionDiv = document.getElementById("contenedor-operadores");
+          if (asignacionDiv) {
+            asignacionDiv.innerHTML = ""; // limpiar contenido anterior
+            data.forEach(op => {
+              const div = document.createElement("div");
+              div.className = "p-3 bg-gray-100 rounded";
+              div.innerHTML = `
+  <div class="flex justify-between items-center">
+    <div>
+      <span class="text-teal-600 font-bold text-sm">${op.especialidad}</span><br>
+      ${op.nombre} - ${op.tarea_asignada}
+    </div>
+    <div>
+      <button 
+        onclick="asignarTarea(${op.id}, '${op.nombre}')"
+        class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded"
+      >
+        Editar tarea
+      </button>
+      ${jerarquia !== "2" ? `
+        <button 
+          onclick="gestionarOperador(${op.id}, '${op.nombre}', '${op.especialidad}')"
+          class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-3 py-1 rounded ml-2"
+        >
+          Opciones
+        </button>
+      ` : ""}
+    </div>
+  </div>
+`;
+              asignacionDiv.appendChild(div);
+            });
+          }
+          const disponiblesDiv = document.getElementById("contenedor-disponibles");
+          if (disponiblesDiv) {
+            disponiblesDiv.innerHTML = "";
+            data.forEach(op => {
+              const div = document.createElement("div");
+              div.innerHTML = `<span class="text-teal-600 font-bold">${op.especialidad.toUpperCase()}</span><br>${op.nombre}`;
+              disponiblesDiv.appendChild(div);
+            });
+          }
+        }
+      })
+      .catch(err => console.error("Error cargando operadores:", err));
+  }
+  if (nombre === "resumen") {
+    setTimeout(inicializarGraficas, 100); // dar tiempo a que se renderice el DOM
+  }
+
+  // --- Cargar inventario dinámicamente al mostrar logística ---
+  if (nombre === "logistica") {
+    fetch("api/inventario/get_inventario.php")
+      .then(res => {
+        if (!res.ok) {
+          throw new Error("Error al conectar con la API de inventario");
+        }
+        return res.json();
+      })
+      .then(data => {
+        console.log("Datos de inventario recibidos:", data);
+        const tablas = document.querySelectorAll("table");
+        if (tablas.length >= 2) {  // La segunda tabla es la de inventario
+          const tbody = tablas[1].querySelector("tbody");
+          if (tbody) {
+            tbody.innerHTML = ""; // Limpiar contenido anterior
+            if (Array.isArray(data)) {
+              data.forEach(item => {
+                const tr = document.createElement("tr");
+                tr.className = "border-t";
+                tr.innerHTML = `
+                  <td class="p-2 border">${item.id}</td>
+                  <td class="p-2 border">${item.Material}</td>
+                  <td class="p-2 border">${item.cantidad_disp}</td>
+                  <td class="p-2 border">${item.cantidad_min}</td>
+                  <td class="p-2 border">${item.estado}</td>
+                `;
+                tbody.appendChild(tr);
+              });
+            } else if (data.success && Array.isArray(data.data)) {
+              data.data.forEach(item => {
+                const tr = document.createElement("tr");
+                tr.className = "border-t";
+                tr.innerHTML = `
+                  <td class="p-2 border">${item.id}</td>
+                  <td class="p-2 border">${item.Material}</td>
+                  <td class="p-2 border">${item.cantidad_disp}</td>
+                  <td class="p-2 border">${item.cantidad_min}</td>
+                  <td class="p-2 border">${item.estado}</td>
+                `;
+                tbody.appendChild(tr);
+              });
+            } else {
+              const tr = document.createElement("tr");
+              tr.innerHTML = `<td colspan="5" class="p-2 border text-center text-red-500">No data available or invalid format.</td>`;
+              tbody.appendChild(tr);
+            }
+          }
+        }
+      })
+      .catch(err => {
+        console.error("Error al cargar inventario:", err);
+        const tablas = document.querySelectorAll("table");
+        if (tablas.length >= 2) {
+          const tbody = tablas[1].querySelector("tbody");
+          if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="5" class="p-2 border text-center text-red-500">Error loading inventory data.</td></tr>`;
+          }
+        }
+      });
+  }
+
+  if (nombre !== "logistica") {
+    const logisticaDiv = document.getElementById("logistica-screen");
+    if (logisticaDiv) {
+      logisticaDiv.style.display = "none";
+    }
+  }
+};
+    }
+
+    // Mostrar por defecto
+    // Mostrar u ocultar botones del menú según jerarquía
+    
+    // Mostrar sección inicial según jerarquía
+    mostrarSeccion(jerarquia === "2" ? "asignacion" : "resumen");
+    
+    function asignarTarea(id, nombre) {
+      fetch("api/tareas/get_tareas.php")
+        .then(response => response.json())
+        .then(tareas => {
+          console.log("Tareas recibidas:", tareas);
+          const select = document.createElement("select");
+          select.className = "border p-2 rounded w-full mt-2";
+          tareas.forEach(t => {
+            console.log("Tarea recibida:", t);  // Debug para ver qué campos llegan
+            // Validar nombre y descripción como cadenas válidas
+            const nombreTarea = (t.nombre && typeof t.nombre === "string") ? t.nombre : "(Nombre no disponible)";
+            const descripcionTarea = (t.descripcion && typeof t.descripcion === "string") ? t.descripcion : "(Descripción no disponible)";
+            const option = document.createElement("option");
+            option.value = t.id;
+            option.textContent = `${nombreTarea} - ${descripcionTarea}`;
+            select.appendChild(option);
+          });
+
+          const modal = document.createElement("div");
+          modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
+
+          const modalContent = document.createElement("div");
+          modalContent.className = "bg-white p-6 rounded shadow-md w-80";
+
+          const heading = document.createElement("h2");
+          heading.className = "text-lg font-semibold mb-2";
+          heading.textContent = `Asignar nueva tarea a ${nombre}`;
+
+          const btns = document.createElement("div");
+          btns.className = "mt-4 flex justify-end space-x-2";
+
+          const btnCancelar = document.createElement("button");
+          btnCancelar.textContent = "Cancelar";
+          btnCancelar.className = "bg-gray-300 hover:bg-gray-400 text-sm px-3 py-1 rounded";
+          btnCancelar.id = "cancelar";
+
+          const btnGuardar = document.createElement("button");
+          btnGuardar.textContent = "Guardar";
+          btnGuardar.className = "bg-teal-600 text-white hover:bg-teal-700 text-sm px-3 py-1 rounded";
+          btnGuardar.id = "guardar";
+
+          btns.appendChild(btnCancelar);
+          btns.appendChild(btnGuardar);
+
+          modalContent.appendChild(heading);
+          modalContent.appendChild(select);
+          modalContent.appendChild(btns);
+          modal.appendChild(modalContent);
+          document.body.appendChild(modal);
+
+          document.getElementById("cancelar").onclick = () => document.body.removeChild(modal);
+          document.getElementById("guardar").onclick = () => {
+            const nuevaTarea = select.value;
+            fetch(`api/tareas/update_tarea_operador.php?jerarquia=${jerarquia}`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id, tarea_asignada: nuevaTarea })
+            })
+              .then(res => res.json())
+              .then(data => {
+                console.log("Respuesta del servidor al actualizar tarea:", data);
+                const notif = document.getElementById("notificacion");
+                if (data.success) {
+                  notif.textContent = "Tarea actualizada correctamente";
+                  mostrarSeccion("asignacion");
+                } else {
+                  notif.textContent = "Error al actualizar tarea";
+                }
+                notif.classList.remove("hidden");
+                setTimeout(() => notif.classList.add("hidden"), 3000);
+              })
+              .catch(err => {
+                console.error("Error al enviar actualización:", err);
+                alert("No se pudo actualizar la tarea.");
+              });
+            document.body.removeChild(modal);
+          };
+        })
+        .catch(err => {
+          console.error("Error al cargar lista de tareas:", err);
+          alert("No se pudo cargar la lista de tareas.");
+        });
+    }
+
+    function gestionarOperador(id, nombre, especialidad) {
+      const modal = document.createElement("div");
+      modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
+
+      const modalContent = document.createElement("div");
+      modalContent.className = "bg-white p-6 rounded shadow-md w-80";
+
+      const title = document.createElement("h2");
+      title.className = "text-lg font-semibold mb-2";
+      title.textContent = `Gestionar operador: ${nombre}`;
+
+      const nombreInput = document.createElement("input");
+      nombreInput.value = nombre;
+      nombreInput.placeholder = "Nombre";
+      nombreInput.className = "w-full border p-2 mb-2 text-sm rounded";
+
+      const especialidadInput = document.createElement("input");
+      especialidadInput.value = especialidad;
+      especialidadInput.placeholder = "Especialidad";
+      especialidadInput.className = "w-full border p-2 mb-2 text-sm rounded";
+
+      const btns = document.createElement("div");
+      btns.className = "flex justify-between mt-4";
+
+      const btnActualizar = document.createElement("button");
+      btnActualizar.textContent = "Actualizar";
+      btnActualizar.className = "bg-blue-500 text-white px-3 py-1 rounded text-sm";
+
+      const btnEliminar = document.createElement("button");
+      btnEliminar.textContent = "Eliminar";
+      btnEliminar.className = "bg-red-500 text-white px-3 py-1 rounded text-sm";
+
+      const btnCancelar = document.createElement("button");
+      btnCancelar.textContent = "Cancelar";
+      btnCancelar.className = "bg-gray-300 px-3 py-1 rounded text-sm";
+
+      btns.appendChild(btnActualizar);
+      btns.appendChild(btnEliminar);
+      btns.appendChild(btnCancelar);
+
+      modalContent.appendChild(title);
+      modalContent.appendChild(nombreInput);
+      modalContent.appendChild(especialidadInput);
+      modalContent.appendChild(btns);
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+
+      btnCancelar.onclick = () => document.body.removeChild(modal);
+
+      btnActualizar.onclick = () => {
+        const idValido = parseInt(id);
+        if (!nombreInput.value.trim() || !especialidadInput.value.trim() || isNaN(idValido)) {
+          alert("Datos inválidos.");
+          return;
+        }
+
+        console.log("Enviando actualización:", {
+          accion: "actualizar",
+          id: idValido,
+          nombre: nombreInput.value,
+          especialidad: especialidadInput.value
+        });
+
+        fetch("api/tareas/update_operador.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            accion: "actualizar",
+            id: idValido,
+            nombre: nombreInput.value,
+            especialidad: especialidadInput.value
+          })
+        })
+        .then(async res => {
+          const texto = await res.text();
+          console.log("Respuesta cruda del servidor:", texto);
+          try {
+            const data = JSON.parse(texto);
+            if (data.success) {
+              alert("Operador actualizado");
+              mostrarSeccion("asignacion");
+            } else {
+              alert("Error: " + data.error);
+            }
+          } catch (err) {
+            console.error("Error al parsear JSON:", err);
+            console.log("Respuesta que falló al parsear:", texto);
+            alert("La respuesta del servidor no es válida.");
+          }
+        })
+        .catch(err => {
+          console.error("Error inesperado al actualizar operador:", err);
+        });
+
+        document.body.removeChild(modal);
+      };
+
+      btnEliminar.onclick = () => {
+        if (!confirm("¿Estás seguro de eliminar este operador?")) return;
+
+        fetch("./api/tareas/update_operador.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ accion: "eliminar", id })
+        })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) {
+            alert("Operador eliminado");
+            mostrarSeccion("asignacion");
+          } else {
+            alert("Error: " + data.error);
+          }
+        });
+        document.body.removeChild(modal);
+      };
+    }
+  // --- Modal para agregar/editar/eliminar material de inventario ---
+  function mostrarFormularioInventario(accion) {
+    const modal = document.createElement("div");
+    modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
+
+    const modalContent = document.createElement("div");
+    modalContent.className = "bg-white p-6 rounded shadow-md w-96";
+
+    const title = document.createElement("h2");
+    title.className = "text-lg font-semibold mb-4";
+    title.textContent = (accion === "agregar" ? "Agregar Material" :
+                        accion === "editar" ? "Editar Material" :
+                        "Eliminar Material");
+
+    const idInput = document.createElement("input");
+    idInput.placeholder = "ID (solo para editar/eliminar)";
+    idInput.className = "w-full border p-2 mb-2 text-sm rounded";
+    if (accion === "agregar") idInput.style.display = "none";
+
+    const nombreInput = document.createElement("input");
+    nombreInput.placeholder = "Nombre del Material";
+    nombreInput.className = "w-full border p-2 mb-2 text-sm rounded";
+    if (accion === "eliminar") nombreInput.style.display = "none";
+
+    const cantidadInput = document.createElement("input");
+    cantidadInput.placeholder = "Cantidad Disponible";
+    cantidadInput.type = "number";
+    cantidadInput.className = "w-full border p-2 mb-2 text-sm rounded";
+    if (accion === "eliminar") cantidadInput.style.display = "none";
+
+    const cantidadMinInput = document.createElement("input");
+    cantidadMinInput.placeholder = "Cantidad Mínima";
+    cantidadMinInput.type = "number";
+    cantidadMinInput.className = "w-full border p-2 mb-2 text-sm rounded";
+    if (accion === "eliminar") cantidadMinInput.style.display = "none";
+
+    const estadoInput = document.createElement("input");
+    estadoInput.placeholder = "Estado (Disponible / No disponible)";
+    estadoInput.className = "w-full border p-2 mb-2 text-sm rounded";
+    if (accion === "eliminar") estadoInput.style.display = "none";
+
+    const btns = document.createElement("div");
+    btns.className = "flex justify-end mt-4 space-x-2";
+
+    const btnCancelar = document.createElement("button");
+    btnCancelar.textContent = "Cancelar";
+    btnCancelar.className = "bg-gray-300 px-3 py-1 rounded text-sm";
+    btnCancelar.onclick = () => document.body.removeChild(modal);
+
+    const btnGuardar = document.createElement("button");
+    btnGuardar.textContent = "Guardar";
+    btnGuardar.className = "bg-teal-600 text-white px-3 py-1 rounded text-sm";
+    btnGuardar.onclick = () => {
+      let payload = {};
+      if (accion === "agregar") {
+        if (!nombreInput.value.trim() || !cantidadInput.value.trim() || !cantidadMinInput.value.trim() || !estadoInput.value.trim()) {
+          alert("Por favor completa todos los campos para agregar material.");
+          return;
+        }
+        payload = {
+          accion: "agregar",
+          Material: nombreInput.value,
+          cantidad_disp: cantidadInput.value,
+          cantidad_min: cantidadMinInput.value,
+          estado: estadoInput.value
+        };
+      } else if (accion === "editar") {
+        if (!idInput.value.trim() || !nombreInput.value.trim() || !cantidadInput.value.trim() || !cantidadMinInput.value.trim() || !estadoInput.value.trim()) {
+          alert("Por favor completa todos los campos para editar material.");
+          return;
+        }
+        payload = {
+          accion: "editar",
+          id: idInput.value,
+          Material: nombreInput.value,
+          cantidad_disp: cantidadInput.value,
+          cantidad_min: cantidadMinInput.value,
+          estado: estadoInput.value
+        };
+      } else if (accion === "eliminar") {
+        if (!idInput.value.trim()) {
+          alert("Por favor indica el ID para eliminar material.");
+          return;
+        }
+        payload = {
+          accion: "eliminar",
+          id: idInput.value
+        };
+      }
+
+      fetch("api/inventario/update_material.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert(data.success ? "Operación realizada correctamente" : "Error: " + data.error);
+        if (data.success) {
+          mostrarSeccion("logistica");
+        }
+      })
+      .catch(err => {
+        console.error("Error al actualizar inventario:", err);
+        alert("Ocurrió un error al procesar la solicitud.");
+      });
+
+      document.body.removeChild(modal);
+    };
+
+    btns.appendChild(btnCancelar);
+    btns.appendChild(btnGuardar);
+
+    modalContent.appendChild(title);
+    if (accion !== "agregar") modalContent.appendChild(idInput);
+    modalContent.appendChild(nombreInput);
+    modalContent.appendChild(cantidadInput);
+    modalContent.appendChild(cantidadMinInput);
+    modalContent.appendChild(estadoInput);
+    modalContent.appendChild(btns);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+  }
+  // --- Modal para agregar ficha técnica ---
+  function mostrarFormularioFicha() {
+    const modal = document.createElement("div");
+    modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
+
+    const modalContent = document.createElement("div");
+    modalContent.className = "bg-white p-6 rounded shadow-md w-96";
+
+    modalContent.innerHTML = `
+      <h2 class="text-lg font-semibold mb-4">Agregar Nueva Ficha Técnica</h2>
+      <input placeholder="Nombre del Pantalón" class="w-full border p-2 mb-2 text-sm rounded" id="nombreFicha">
+      <textarea placeholder="Descripción" class="w-full border p-2 mb-2 text-sm rounded" id="descripcionFicha"></textarea>
+      <input placeholder="Cantidad de Botones" type="number" class="w-full border p-2 mb-2 text-sm rounded" id="botonFicha">
+      <input placeholder="Cantidad de Cierres" type="number" class="w-full border p-2 mb-2 text-sm rounded" id="cierreFicha">
+      <input placeholder="Cantidad de Hilos" type="number" class="w-full border p-2 mb-2 text-sm rounded" id="hiloFicha">
+      <input placeholder="SKU (ej: SKU001)" class="w-full border p-2 mb-2 text-sm rounded" id="skuFicha">
+      <div class="flex justify-end space-x-2 mt-4">
+        <button class="bg-gray-300 px-3 py-1 rounded text-sm" onclick="document.body.removeChild(this.closest('.fixed'))">Cancelar</button>
+        <button class="bg-teal-600 text-white px-3 py-1 rounded text-sm" onclick="guardarFicha()">Guardar</button>
+      </div>
+    `;
+
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+  }
+
+  // Solo crea la función guardarFicha para consola ahora (luego se implementa la llamada al backend)
+  function guardarFicha() {
+    const nombre = document.getElementById("nombreFicha").value;
+    const descripcion = document.getElementById("descripcionFicha").value;
+    const boton = document.getElementById("botonFicha").value;
+    const cierre = document.getElementById("cierreFicha").value;
+    const hilo = document.getElementById("hiloFicha").value;
+    const sku = document.getElementById("skuFicha").value;
+
+    console.log("Ficha técnica a guardar:", { nombre, descripcion, boton, cierre, hilo, sku });
+    alert("Funcionalidad pendiente: se enviará la nueva ficha al backend en futuras implementaciones.");
+
+    // Cerrar modal
+    const modal = document.querySelector(".fixed");
+    if (modal) document.body.removeChild(modal);
+  }
+  </script>
+  
+
+</body>
+</html>
