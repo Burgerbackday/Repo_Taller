@@ -1,3 +1,4 @@
+// Este archivo contiene la lógica de autenticación para validar las credenciales del usuario.
 <?php
 header("Content-Type: application/json");
 
@@ -34,3 +35,53 @@ if ($result->num_rows > 0) {
 
 $conn->close();
 ?>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Login</title>
+</head>
+<body>
+    <h1>Iniciar sesión</h1>
+    <form id="loginForm">
+        <label for="username">Usuario:</label>
+        <input type="text" id="username" name="username" required />
+        <br />
+        <label for="password">Contraseña:</label>
+        <input type="password" id="password" name="password" required />
+        <br />
+        <button type="submit">Entrar</button>
+    </form>
+
+    <div id="mensaje"></div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            fetch("api/usuarios/login.php", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ username, password })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('mensaje').textContent = "Bienvenido, " + data.nombre;
+                    // Aquí podrías redirigir o hacer otra acción
+                } else {
+                    document.getElementById('mensaje').textContent = data.message;
+                }
+            })
+            .catch(error => {
+                document.getElementById('mensaje').textContent = "Error de conexión";
+            });
+        });
+    </script>
+</body>
+</html>

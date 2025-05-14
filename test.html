@@ -1,12 +1,15 @@
 <!DOCTYPE html>
+
 <html lang="es">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Logistica del taller</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Logistica del taller</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
     table {
       width: 100%;
       border-collapse: collapse;
@@ -24,64 +27,57 @@
     }
   </style>
 </head>
-<body class="bg-white text-gray-800">
-
-  <!-- Contenido principal -->
-  <div id="content" class="pb-24 px-4 pt-6"></div>
-
-  <!-- Menú inferior -->
-<div class="fixed bottom-0 w-full bg-white flex justify-around items-center py-3 border-t shadow-md">
-  <div id="btn-usuario" class="relative group flex flex-col items-center text-gray-500 hover:text-teal-600">
-    <button class="focus:outline-none mt-1">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.004 9.004 0 0112 15c2.003 0 3.864.66 5.304 1.768M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>      
-    </button>
-    <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 bg-white border rounded shadow-md w-32 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
-      <div id="perfil-info" style="display: none;" class="px-4 py-2 border-b text-sm text-gray-600">
-        <div><strong>Persona:</strong> <span id="info-usuario">-</span></div>
-        <div><strong>Jerarquía:</strong> <span id="info-jerarquia">-</span></div>
-      </div>
-      <button id="btn-ver-perfil" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">View Profile</button>
-      <button onclick="window.location.href='index.html'" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Sign Out</button>
-    </div>
-  </div>
-  
-  <button onclick="mostrarSeccion('resumen')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-resumen">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18V3H3zm4 14h2v-2H7v2zm0-4h2v-2H7v2zm0-4h2V7H7v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2zm0-4h2V7h-2v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2z" />
-    </svg>
-   
-  </button>
-  
-
-  <button onclick="mostrarSeccion('asignacion')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-asignacion">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-    </svg>
-   
-  </button>
-
-  <button onclick="mostrarSeccion('logistica')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-logistica">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2s-3 1.343-3 3 1.343 3 3 3zM6.343 16.657A8 8 0 1117.657 5.343 8 8 0 016.343 16.657z" />
-    </svg>
-    
-  </button>
-
-  <button onclick="mostrarSeccion('fichas')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-fichas">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6M9 9h6m-6 4h6m-6 4h6M5 5h.01M5 9h.01M5 13h.01M5 17h.01" />
-    </svg>
-    
-  </button>
+<body class="bg-white text-gray-800" style="background: #e0e5ec; color: #333">
+<!-- Contenido principal -->
+<div class="pb-24 px-4 pt-6" id="content"></div>
+<!-- Menú inferior -->
+<div class="fixed bottom-0 w-full bg-white flex justify-around items-center py-3 border-t shadow-md" style="box-shadow:8px 8px 15px #d1d9e6, -8px -8px 15px #ffffff; border-radius:12px; background:#e0e5ec; border:none">
+<div class="relative group flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-usuario">
+<button class="focus:outline-none mt-1" style="box-shadow:8px 8px 15px #d1d9e6, -8px -8px 15px #ffffff; border-radius:12px; background:#e0e5ec; border:none">
+<svg class="h-8 w-8 text-gray-600" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M5.121 17.804A9.004 9.004 0 0112 15c2.003 0 3.864.66 5.304 1.768M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 bg-white border rounded shadow-md w-32 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50" style="box-shadow:8px 8px 15px #d1d9e6, -8px -8px 15px #ffffff; border-radius:12px; background:#e0e5ec; border:none">
+<div class="px-4 py-2 border-b text-sm text-gray-600" id="perfil-info" style="display: none;">
+<div><strong>Persona:</strong> <span id="info-usuario">-</span></div>
+<div><strong>Jerarquía:</strong> <span id="info-jerarquia">-</span></div>
 </div>
+<button class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" id="btn-ver-perfil" style="box-shadow:8px 8px 15px #d1d9e6, -8px -8px 15px #ffffff; border-radius:12px; background:#e0e5ec; border:none">View Profile</button>
+<button class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" onclick="window.location.href='index.html'" style="box-shadow:8px 8px 15px #d1d9e6, -8px -8px 15px #ffffff; border-radius:12px; background:#e0e5ec; border:none">Sign Out</button>
+</div>
+</div>
+<button class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-resumen" onclick="mostrarSeccion('resumen')" style="box-shadow:8px 8px 15px #d1d9e6, -8px -8px 15px #ffffff; border-radius:12px; background:#e0e5ec; border:none">
+<svg class="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M3 3v18h18V3H3zm4 14h2v-2H7v2zm0-4h2v-2H7v2zm0-4h2V7H7v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2zm0-4h2V7h-2v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<button class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-asignacion" onclick="mostrarSeccion('asignacion')" style="box-shadow:8px 8px 15px #d1d9e6, -8px -8px 15px #ffffff; border-radius:12px; background:#e0e5ec; border:none">
+<svg class="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<button class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-logistica" onclick="mostrarSeccion('logistica')" style="box-shadow:8px 8px 15px #d1d9e6, -8px -8px 15px #ffffff; border-radius:12px; background:#e0e5ec; border:none">
+<svg class="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2s-3 1.343-3 3 1.343 3 3 3zM6.343 16.657A8 8 0 1117.657 5.343 8 8 0 016.343 16.657z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+<button class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-fichas" onclick="mostrarSeccion('fichas')" style="box-shadow:8px 8px 15px #d1d9e6, -8px -8px 15px #ffffff; border-radius:12px; background:#e0e5ec; border:none">
+<svg class="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M9 5h6M9 9h6m-6 4h6m-6 4h6M5 5h.01M5 9h.01M5 13h.01M5 17h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
 
-  </div>
-  <div id="notificacion" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded shadow-lg text-sm hidden z-50">
+<button class="flex flex-col items-center text-gray-500 hover:text-teal-600 neumorphism-button" id="btn-pedidos" onclick="mostrarSeccion('pedidos')">
+<svg class="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewbox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+</button>
+</div>
+<div class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded shadow-lg text-sm hidden z-50" id="notificacion" style="box-shadow:8px 8px 15px #d1d9e6, -8px -8px 15px #ffffff; border-radius:12px; background:#e0e5ec; border:none">
     Actualización exitosa
   </div>
-  <script>
+<script>
     // Obtener los datos del usuario desde localStorage
     const jerarquia = localStorage.getItem("jerarquiaUsuario");
     const nombreUsuario = localStorage.getItem("nombreUsuario");
@@ -106,8 +102,8 @@
       }
     });
   </script>
-  <!-- Script -->
-  <script>
+<!-- Script -->
+<script>
     const content = document.getElementById("content");
     const botones = {
       resumen: document.getElementById("btn-resumen"),
@@ -117,6 +113,19 @@
     };
 
     const secciones = {
+      pedidos: `
+        <div class="neumorphism-card p-6">
+          <h2 class="text-2xl font-bold mb-4">Registrar nuevo pedido</h2>
+          <form id='formPedido' class='space-y-4'>
+            <input type='text' id='producto' placeholder='Producto (Ej. Pantalón Cargo)' class='w-full p-3 rounded neumorphism-input' required>
+            <input type='number' id='cantidad' placeholder='Cantidad' min='1' class='w-full p-3 rounded neumorphism-input' required>
+            <button type='submit' class='bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600'>Registrar Pedido</button>
+          </form>
+          <h2 class='text-xl font-semibold mt-8 mb-4'>Pedidos registrados</h2>
+          <div id='listaPedidos' class='space-y-2'>Cargando pedidos...</div>
+        </div>
+      `,
+    
       fichas: `
 <h2 class="text-2xl font-bold mb-4 text-center">Fichas Técnicas de Pantalones</h2>
 <div id="fichas-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
@@ -138,98 +147,9 @@
   <div id="contenedor-operadores" class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm"></div>
 `,
       logistica: `
-  <h2 class="text-xl font-semibold mb-4">Registro de ventas completadas</h2>
-  <div class="bg-white p-4 rounded shadow border mb-6">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-      <div>
-        <label class="block text-sm font-medium">Fecha inicio</label>
-        <input type="date" class="w-full border rounded p-2 text-sm" value="2025-04-07" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Fecha fin</label>
-        <input type="date" class="w-full border rounded p-2 text-sm" value="2025-04-07" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Responsable</label>
-        <select class="w-full border rounded p-2 text-sm">
-          <option>Ana Moreno</option>
-        </select>
-      </div>
-    </div>
-    <button class="bg-teal-600 text-white px-4 py-2 rounded text-sm">Aplicar filtros</button>
-
-    <div class="mt-6">
-      <button class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs">Cliente Interno</button>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-      <div>
-        <label class="block text-sm font-medium">Cliente</label>
-        <input type="text" class="w-full border rounded p-2 text-sm" value="Cliente Interno" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Producto</label>
-        <select class="w-full border rounded p-2 text-sm">
-          <option>Modelo A - Talla S</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Cantidad</label>
-        <input type="number" class="w-full border rounded p-2 text-sm" value="500" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Precio Unitario</label>
-        <input type="number" class="w-full border rounded p-2 text-sm" value="25.5" />
-      </div>
-    </div>
-
-    <div class="mt-4 text-sm">
-      <label class="block font-medium mb-1">Estado del Pedido</label>
-      <label class="mr-4"><input type="radio" name="estado" checked /> Pendiente</label>
-      <label class="mr-4"><input type="radio" name="estado" /> Procesado</label>
-      <label class="mr-4"><input type="radio" name="estado" /> Entregado</label>
-      <label><input type="radio" name="estado" /> Cerrado</label>
-    </div>
-
-    <div class="mt-4 text-sm">
-      <strong>Total: <span class="text-teal-600">$255</span></strong> <span class="text-gray-500">(Cálculo automático: Cantidad × Precio Unitario)</span>
-    </div>
-
-    <div class="mt-4 flex flex-wrap gap-3">
-      <button class="bg-teal-600 text-white px-4 py-2 rounded text-sm">Confirmar Pedido</button>
-      <button class="bg-gray-200 px-4 py-2 rounded text-sm">Actualizar Estado</button>
-      <button class="bg-green-600 text-white px-4 py-2 rounded text-sm">Marcar como Entregado y Cerrar</button>
-    </div>
-
-    <h3 class="text-lg font-semibold mb-2">Pedidos</h3>
-    <div class="flex justify-between items-center mb-2">
-      <input type="search" class="border p-2 rounded text-sm" placeholder="Search" />
-      <button class="bg-teal-600 text-white px-4 py-1 rounded text-sm">+ Agregar.</button>
-    </div>
-
-    <table class="w-full text-sm border">
-      <thead class="bg-gray-100 text-left">
-        <tr>
-          <th class="p-2 border">ID</th>
-          <th class="p-2 border">MATERIAL</th>
-          <th class="p-2 border">CANTIDAD_DISPONIBLE</th>
-          <th class="p-2 border">CANTIDAD_MINIMA</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="border-t"><td class="p-2 border">1</td><td class="p-2 border">Jorge Morales</td><td class="p-2 border">Pantalon de Vestir</td><td class="p-2 border">1200</td></tr>
-        <tr class="border-t"><td class="p-2 border">3635</td><td class="p-2 border">Claudia Sheinbaun</td><td class="p-2 border">Pantalon de Mezclilla</td><td class="p-2 border">400</td></tr>
-        <tr class="border-t"><td class="p-2 border">6468</td><td class="p-2 border">Andres Lopez</td><td class="p-2 border">Pantalon de Vestir</td><td class="p-2 border">500</td></tr>
-        <tr class="border-t"><td class="p-2 border">3580</td><td class="p-2 border">Carlos Salinas</td><td class="p-2 border">Jeans</td><td class="p-2 border">999</td></tr>
-        <tr class="border-t"><td class="p-2 border">33312</td><td class="p-2 border">Carlos Salinas</td><td class="p-2 border">Jeans</td><td class="p-2 border">888</td></tr>
-        <!-- Más filas... -->
-      </tbody>
-    </table>
-
     <h3 class="text-lg font-semibold mb-2 mt-8">Inventario</h3>
     <div class="flex justify-between items-center mb-2">
       <input type="search" class="border p-2 rounded text-sm" placeholder="Search" />
-      <button class="bg-teal-600 text-white px-4 py-1 rounded text-sm">+ Agregar.</button>
     </div>
 
     <table class="w-full text-sm border">
@@ -242,21 +162,83 @@
           <th class="p-2 border">ESTADO</th>
         </tr>
       </thead>
-      <tbody>
-        <tr class="border-t"><td class="p-2 border">1</td><td class="p-2 border">Tela de algodón</td><td class="p-2 border">500</td><td class="p-2 border">100</td><td class="p-2 border">Disponible</td></tr>
-        <tr class="border-t"><td class="p-2 border">2</td><td class="p-2 border">Hilo negro</td><td class="p-2 border">0</td><td class="p-2 border">50</td><td class="p-2 border">No disponible</td></tr>
-        <tr class="border-t"><td class="p-2 border">3</td><td class="p-2 border">Botones</td><td class="p-2 border">1000</td><td class="p-2 border">200</td><td class="p-2 border">Disponible</td></tr>
-        <tr class="border-t"><td class="p-2 border">4</td><td class="p-2 border">Cremalleras</td><td class="p-2 border">300</td><td class="p-2 border">100</td><td class="p-2 border">Disponible</td></tr>
-        <tr class="border-t"><td class="p-2 border">5</td><td class="p-2 border">Forro de tela</td><td class="p-2 border">400</td><td class="p-2 border">150</td><td class="p-2 border">Disponible</td></tr>
+      <tbody id="tablaInventarioBody">
+        <!-- Contenido generado dinámicamente desde get_inventario.php -->
       </tbody>
     </table>
     <div class="mt-4 flex flex-wrap gap-3">
       <button onclick="mostrarFormularioInventario('agregar')" class="bg-green-600 text-white px-4 py-2 rounded text-sm">Agregar Material</button>
       <button onclick="mostrarFormularioInventario('editar')" class="bg-yellow-500 text-white px-4 py-2 rounded text-sm">Editar Material</button>
       <button onclick="mostrarFormularioInventario('eliminar')" class="bg-red-600 text-white px-4 py-2 rounded text-sm">Eliminar Material</button>
+      <button onclick="generarReportePDF()" class="bg-blue-600 text-white px-4 py-2 rounded text-sm">Generar Reporte PDF</button>
     </div>
-  </div>
-`};
+
+    <h3 class="text-lg font-semibold mb-4 mt-8">Producción - Iniciar Corte de Tela</h3>
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-sm font-medium">Ficha Técnica</label>
+        <select id="selectFicha" class="w-full border rounded p-2 text-sm">
+          <option value="">Seleccione una ficha técnica</option>
+          <!-- Opciones se llenarán dinámicamente -->
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Cantidad de Piezas</label>
+        <input type="number" id="cantidadPiezas" class="w-full border rounded p-2 text-sm" placeholder="Ej: 100">
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Tamaño</label>
+        <select id="selectTamaño" class="w-full border rounded p-2 text-sm">
+          <option value="">Seleccione un tamaño</option>
+          <option value="S">S</option>
+          <option value="M">M</option>
+          <option value="L">L</option>
+          <option value="XL">XL</option>
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Administrador de Línea</label>
+        <select id="selectAdminLinea" class="w-full border rounded p-2 text-sm">
+          <option value="">Seleccione un administrador</option>
+          <!-- Opciones se llenarán dinámicamente -->
+        </select>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Fecha de Inicio</label>
+        <input type="date" id="fechaInicio" class="w-full border rounded p-2 text-sm">
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Fecha Estimada de Finalización</label>
+        <input type="date" id="fechaFin" class="w-full border rounded p-2 text-sm">
+      </div>
+    </div>
+    <div class="mt-4">
+      <button onclick="iniciarCorteTela()" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm">Iniciar Corte de Tela</button>
+    </div>
+    <div id="alertaFichaMateriales" class="mt-2 text-red-600 text-sm hidden">
+      <strong>¡Aviso!</strong> No se encuentra la relación de materiales para esta ficha técnica. Contacte a su administrador.
+    </div>
+
+    <h3 class="text-lg font-semibold mb-4 mt-8">Cortes Actuales</h3>
+    <table id="tablaCortesActuales" class="w-full text-sm border">
+      <thead class="bg-gray-100 text-left">
+        <tr>
+          <th class="p-2 border">ID</th>
+          <th class="p-2 border">Ficha Técnica</th>
+          <th class="p-2 border">Administrador</th>
+          <th class="p-2 border">Fecha Inicio</th>
+          <th class="p-2 border">Fecha Fin</th>
+          <th class="p-2 border">Estado</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td colspan="6" class="text-center p-2 border">Cargando cortes actuales...</td>
+        </tr>
+      </tbody>
+    </table>
+  `
+};
 
     // Variable global para la instancia de la gráfica de pedidos
     let graficaPedidosInstance = null;
@@ -325,7 +307,7 @@
                 console.log("Ficha individual:", ficha);
                 const card = document.createElement("div");
                 card.className = "bg-white shadow rounded overflow-hidden";
-                card.innerHTML = `
+              card.innerHTML = `
                   <img src="img/${ficha.sku ? ficha.sku : 'placeholder'}.jpg" alt="${ficha.nombre}" class="w-full h-48 object-cover">
                   <div class="p-4">
                     <h3 class="text-lg font-semibold">${ficha.nombre}</h3>
@@ -334,6 +316,10 @@
                       <p><strong>Botones:</strong> ${ficha.boton}</p>
                       <p><strong>Cierres:</strong> ${ficha.cierre}</p>
                       <p><strong>Hilos:</strong> ${ficha.hilo}</p>
+                    </div>
+                    <div class="flex justify-end gap-2 mt-4">
+                      <button onclick="editarFicha(${ficha.idfic})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">Editar</button>
+                      <button onclick="eliminarFicha(${ficha.idfic})" class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs">Eliminar</button>
                     </div>
                   </div>
                 `;
@@ -457,6 +443,37 @@ mostrarSeccion = function(nombre) {
   }
 
   // --- Cargar inventario dinámicamente al mostrar logística ---
+    
+  if (nombre === "pedidos") {
+    fetch("api/pedidos/listar_pedidos.php")
+      .then(res => res.json())
+      .then(data => {
+        const tbody = document.getElementById("tablaPedidosBody");
+        if (!tbody) return;
+
+        if (Array.isArray(data)) {
+          tbody.innerHTML = "";
+          data.forEach(pedido => {
+            const tr = document.createElement("tr");
+            tr.innerHTML = `
+              <td class="p-2 border">${pedido.idpedi}</td>
+              <td class="p-2 border">${pedido.nombrecliente}</td>
+              <td class="p-2 border">${pedido.pro_nombre}</td>
+              <td class="p-2 border">${pedido.cantidad}</td>
+              <td class="p-2 border">${pedido.fecha_registro}</td>
+              <td class="p-2 border">${pedido.fecha_entrega}</td>
+            `;
+            tbody.appendChild(tr);
+          });
+        } else {
+          tbody.innerHTML = `<tr><td colspan="6" class="p-2 border text-center text-red-500">Error cargando pedidos.</td></tr>`;
+        }
+      })
+      .catch(err => {
+        console.error("Error al cargar pedidos:", err);
+      });
+  }
+
   if (nombre === "logistica") {
     fetch("api/inventario/get_inventario.php")
       .then(res => {
@@ -467,56 +484,126 @@ mostrarSeccion = function(nombre) {
       })
       .then(data => {
         console.log("Datos de inventario recibidos:", data);
-        const tablas = document.querySelectorAll("table");
-        if (tablas.length >= 2) {  // La segunda tabla es la de inventario
-          const tbody = tablas[1].querySelector("tbody");
+        const tbody = document.getElementById("tablaInventarioBody");
+        if (tbody) {
+          tbody.innerHTML = ""; // Limpiar contenido anterior
+          let inventarioArray = [];
+          if (data.success && Array.isArray(data.data)) {
+            inventarioArray = data.data;
+            data.data.forEach(item => {
+              const tr = document.createElement("tr");
+              tr.className = "border-t";
+              tr.innerHTML = `
+                <td class="p-2 border">${item.id}</td>
+                <td class="p-2 border">${item.Material}</td>
+                <td class="p-2 border">${item.cantidad_disp}</td>
+                <td class="p-2 border">${item.cantidad_min}</td>
+                <td class="p-2 border">${item.estado}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          } else if (Array.isArray(data)) {
+            inventarioArray = data;
+            data.forEach(item => {
+              const tr = document.createElement("tr");
+              tr.className = "border-t";
+              tr.innerHTML = `
+                <td class="p-2 border">${item.id}</td>
+                <td class="p-2 border">${item.Material}</td>
+                <td class="p-2 border">${item.cantidad_disp}</td>
+                <td class="p-2 border">${item.cantidad_min}</td>
+                <td class="p-2 border">${item.estado}</td>
+              `;
+              tbody.appendChild(tr);
+            });
+          } else {
+            console.warn("Advertencia: No se recibieron datos válidos de inventario o el formato no es el esperado.");
+            const tr = document.createElement("tr");
+            tr.innerHTML = `<td colspan="5" class="p-2 border text-center text-red-500">No data available or invalid format.</td>`;
+            tbody.appendChild(tr);
+          }
+          // --- Ya no actualizar la gráfica de disponibilidad aquí ---
+        }
+      })
+      .catch(err => {
+        console.error("Error al cargar inventario:", err);
+        const tbody = document.getElementById("tablaInventarioBody");
+        if (tbody) {
+          tbody.innerHTML = `<tr><td colspan="5" class="p-2 border text-center text-red-500">Error loading inventory data.</td></tr>`;
+        }
+      });
+
+    // --- Cargar admins dinámicamente ---
+    fetch("api/produccion/get_admins.php")
+      .then(res => res.json())
+      .then(data => {
+        const adminSelect = document.getElementById("selectAdminLinea");
+        if (Array.isArray(data.data)) {
+          adminSelect.innerHTML = '<option value="">Seleccione un administrador</option>';
+          data.data.forEach(admin => {
+            const option = document.createElement("option");
+            option.value = admin.id;
+            option.textContent = admin.usuario;
+            adminSelect.appendChild(option);
+          });
+        }
+      })
+      .catch(err => console.error("Error cargando admins:", err));
+
+    // --- Cargar fichas técnicas dinámicamente ---
+    fetch("api/fichas/get_fichas.php")
+      .then(res => res.json())
+      .then(data => {
+        const fichaSelect = document.getElementById("selectFicha");
+        if (Array.isArray(data)) {
+          fichaSelect.innerHTML = '<option value="">Seleccione una ficha técnica</option>';
+          data.forEach(ficha => {
+            const option = document.createElement("option");
+            option.value = ficha.id;
+            option.textContent = ficha.nombre;
+            fichaSelect.appendChild(option);
+          });
+        }
+      })
+      .catch(err => console.error("Error cargando fichas técnicas:", err));
+
+    // --- Cargar cortes actuales dinámicamente ---
+    fetch("api/produccion/get_cortes.php")
+      .then(res => res.json())
+      .then(data => {
+        const tablaCortes = document.getElementById("tablaCortesActuales");
+        if (tablaCortes) {
+          const tbody = tablaCortes.querySelector("tbody");
           if (tbody) {
             tbody.innerHTML = ""; // Limpiar contenido anterior
-            let inventarioArray = [];
-            if (Array.isArray(data)) {
-              inventarioArray = data;
-              data.forEach(item => {
+            if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+              data.data.forEach(corte => {
                 const tr = document.createElement("tr");
-                tr.className = "border-t";
                 tr.innerHTML = `
-                  <td class="p-2 border">${item.id}</td>
-                  <td class="p-2 border">${item.Material}</td>
-                  <td class="p-2 border">${item.cantidad_disp}</td>
-                  <td class="p-2 border">${item.cantidad_min}</td>
-                  <td class="p-2 border">${item.estado}</td>
-                `;
-                tbody.appendChild(tr);
-              });
-            } else if (data.success && Array.isArray(data.data)) {
-              inventarioArray = data.data;
-              data.data.forEach(item => {
-                const tr = document.createElement("tr");
-                tr.className = "border-t";
-                tr.innerHTML = `
-                  <td class="p-2 border">${item.id}</td>
-                  <td class="p-2 border">${item.Material}</td>
-                  <td class="p-2 border">${item.cantidad_disp}</td>
-                  <td class="p-2 border">${item.cantidad_min}</td>
-                  <td class="p-2 border">${item.estado}</td>
+                  <td class="p-2 border">${corte.id}</td>
+                  <td class="p-2 border">${corte.ficha_tecnica}</td>
+                  <td class="p-2 border">${corte.administrador}</td>
+                  <td class="p-2 border">${corte.fecha_inicio}</td>
+                  <td class="p-2 border">${corte.fecha_fin}</td>
+                  <td class="p-2 border">${corte.estado}</td>
                 `;
                 tbody.appendChild(tr);
               });
             } else {
               const tr = document.createElement("tr");
-              tr.innerHTML = `<td colspan="5" class="p-2 border text-center text-red-500">No data available or invalid format.</td>`;
+              tr.innerHTML = `<td colspan="6" class="text-center p-2 border text-gray-500">No hay cortes actuales.</td>`;
               tbody.appendChild(tr);
             }
-            // --- Ya no actualizar la gráfica de disponibilidad aquí ---
           }
         }
       })
       .catch(err => {
-        console.error("Error al cargar inventario:", err);
-        const tablas = document.querySelectorAll("table");
-        if (tablas.length >= 2) {
-          const tbody = tablas[1].querySelector("tbody");
+        console.error("Error cargando cortes actuales:", err);
+        const tablaCortes = document.getElementById("tablaCortesActuales");
+        if (tablaCortes) {
+          const tbody = tablaCortes.querySelector("tbody");
           if (tbody) {
-            tbody.innerHTML = `<tr><td colspan="5" class="p-2 border text-center text-red-500">Error loading inventory data.</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="p-2 border text-center text-red-500">Error cargando los cortes.</td></tr>`;
           }
         }
       });
@@ -913,44 +1000,544 @@ mostrarSeccion = function(nombre) {
     modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
 
     const modalContent = document.createElement("div");
-    modalContent.className = "bg-white p-6 rounded shadow-md w-96";
+    modalContent.className = "bg-white p-6 rounded shadow-md w-96 max-h-[80vh] overflow-y-auto";
 
     modalContent.innerHTML = `
-      <h2 class="text-lg font-semibold mb-4">Agregar Nueva Ficha Técnica</h2>
-      <input placeholder="Nombre del Pantalón" class="w-full border p-2 mb-2 text-sm rounded" id="nombreFicha">
-      <textarea placeholder="Descripción" class="w-full border p-2 mb-2 text-sm rounded" id="descripcionFicha"></textarea>
-      <input placeholder="Cantidad de Botones" type="number" class="w-full border p-2 mb-2 text-sm rounded" id="botonFicha">
-      <input placeholder="Cantidad de Cierres" type="number" class="w-full border p-2 mb-2 text-sm rounded" id="cierreFicha">
-      <input placeholder="Cantidad de Hilos" type="number" class="w-full border p-2 mb-2 text-sm rounded" id="hiloFicha">
-      <input placeholder="SKU (ej: SKU001)" class="w-full border p-2 mb-2 text-sm rounded" id="skuFicha">
-      <div class="flex justify-end space-x-2 mt-4">
-        <button class="bg-gray-300 px-3 py-1 rounded text-sm" onclick="document.body.removeChild(this.closest('.fixed'))">Cancelar</button>
-        <button class="bg-teal-600 text-white px-3 py-1 rounded text-sm" onclick="guardarFicha()">Guardar</button>
-      </div>
+<h2 class="text-lg font-semibold mb-4">Agregar Nueva Ficha Técnica</h2>
+<input placeholder="Nombre del Pantalón" class="w-full border p-2 mb-2 text-sm rounded" id="nombreFicha">
+<textarea placeholder="Descripción" class="w-full border p-2 mb-2 text-sm rounded" id="descripcionFicha"></textarea>
+<input placeholder="Cantidad de Botones" type="number" class="w-full border p-2 mb-2 text-sm rounded" id="botonFicha">
+<input placeholder="Cantidad de Cierres" type="number" class="w-full border p-2 mb-2 text-sm rounded" id="cierreFicha">
+<input placeholder="Cantidad de Hilos" type="number" class="w-full border p-2 mb-2 text-sm rounded" id="hiloFicha">
+<div class="flex flex-col gap-2 mt-2">
+  <label class="block text-sm font-medium">Foto del Pantalón</label>
+  <video id="camara" autoplay playsinline class="w-full rounded border mb-2 hidden"></video>
+  <button id="btnTomarFoto" class="bg-blue-500 text-white px-3 py-1 rounded text-sm hidden mt-2">Capturar Foto</button>
+  <canvas id="fotoCanvas" class="hidden"></canvas>
+  <img id="vistaPrevia" class="w-full h-48 object-cover rounded border mb-2 hidden" alt="Vista previa de la foto tomada">
+  <div class="flex flex-col sm:flex-row gap-2">
+    <button id="btnHabilitarCamara" class="bg-gray-200 px-3 py-1 rounded text-sm">Tomar Foto con Cámara</button>
+    <button id="btnSeleccionarArchivo" class="bg-gray-200 px-3 py-1 rounded text-sm">Seleccionar Imagen</button>
+    <input type="file" accept="image/*" id="fotoArchivo" class="hidden">
+  </div>
+</div>
+<div class="flex justify-end space-x-2 mt-4">
+  <button class="bg-gray-300 px-3 py-1 rounded text-sm" onclick="document.body.removeChild(this.closest('.fixed'))">Cancelar</button>
+  <button class="bg-teal-600 text-white px-3 py-1 rounded text-sm" onclick="guardarFicha()">Guardar</button>
+</div>
     `;
 
     modal.appendChild(modalContent);
     document.body.appendChild(modal);
+
+    // --- Nueva lógica de cámara y selección de archivo ---
+    let currentStream = null;
+
+    function iniciarCamaraYMostrar() {
+      const video = modalContent.querySelector("#camara");
+      const btnTomarFoto = modalContent.querySelector("#btnTomarFoto");
+
+      navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+        .then(stream => {
+          currentStream = stream;
+          video.srcObject = stream;
+          video.classList.remove("hidden");
+          btnTomarFoto.classList.remove("hidden");
+          video.style.height = "";  // Reset height when camera starts again
+        })
+        .catch(err => {
+          console.error("No se pudo acceder a la cámara:", err);
+          alert("No se pudo acceder a la cámara.");
+        });
+    }
+
+    // Botón para activar la cámara y mostrar el video y botón de captura
+    modalContent.querySelector("#btnHabilitarCamara").addEventListener("click", (e) => {
+      e.preventDefault();
+      iniciarCamaraYMostrar();
+    });
+
+    // Botón para capturar la foto (shutter)
+    modalContent.querySelector("#btnTomarFoto").addEventListener("click", () => {
+      const canvas = document.getElementById("fotoCanvas");
+      const video = document.getElementById("camara");
+      const vistaPrevia = document.getElementById("vistaPrevia");
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      vistaPrevia.src = canvas.toDataURL('image/jpeg');
+      vistaPrevia.classList.remove("hidden");
+
+      // Stop the camera after capturing
+      if (currentStream) {
+        currentStream.getTracks().forEach(track => track.stop());
+        currentStream = null;
+      }
+      video.srcObject = null;  // Release the stream
+      video.classList.add("hidden");
+      video.style.height = "0px";  // Fully collapse the video space
+      modalContent.querySelector("#btnTomarFoto").classList.add("hidden");
+
+      alert("Foto tomada y lista para guardar.");
+    });
+
+    // Botón para abrir el selector de archivos manual
+    modalContent.querySelector("#btnSeleccionarArchivo").addEventListener("click", (e) => {
+      e.preventDefault();
+      document.getElementById("fotoArchivo").click();
+    });
+
+    // Mostrar la vista previa al seleccionar un archivo
+    modalContent.querySelector("#fotoArchivo").addEventListener("change", (e) => {
+      const archivo = e.target.files[0];
+      if (archivo && archivo.type.startsWith("image/")) {
+        const vistaPrevia = document.getElementById("vistaPrevia");
+        const reader = new FileReader();
+        reader.onload = (ev) => {
+          vistaPrevia.src = ev.target.result;
+          vistaPrevia.classList.remove("hidden");
+        };
+        reader.readAsDataURL(archivo);
+      }
+    });
   }
 
-  // Solo crea la función guardarFicha para consola ahora (luego se implementa la llamada al backend)
+  // Función para guardar ficha técnica y foto
   function guardarFicha() {
     const nombre = document.getElementById("nombreFicha").value;
     const descripcion = document.getElementById("descripcionFicha").value;
     const boton = document.getElementById("botonFicha").value;
     const cierre = document.getElementById("cierreFicha").value;
     const hilo = document.getElementById("hiloFicha").value;
-    const sku = document.getElementById("skuFicha").value;
 
-    console.log("Ficha técnica a guardar:", { nombre, descripcion, boton, cierre, hilo, sku });
-    alert("Funcionalidad pendiente: se enviará la nueva ficha al backend en futuras implementaciones.");
+    const canvas = document.getElementById("fotoCanvas");
+    const video = document.getElementById("camara");
+    const vistaPrevia = document.getElementById("vistaPrevia");
+    const archivoInput = document.getElementById("fotoArchivo");
 
-    // Cerrar modal
-    const modal = document.querySelector(".fixed");
-    if (modal) document.body.removeChild(modal);
+    if (!nombre || !descripcion || !boton || !cierre || !hilo) {
+      alert("Por favor complete todos los campos.");
+      return;
+    }
+
+    // Validar que la foto fue tomada (vista previa visible)
+    if (vistaPrevia.classList.contains("hidden")) {
+      alert("Por favor tome una foto antes de guardar.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('nombre', nombre);
+    formData.append('descripcion', descripcion);
+    formData.append('boton', boton);
+    formData.append('cierre', cierre);
+    formData.append('hilo', hilo);
+
+    function enviarFicha(formData) {
+      fetch('api/fichas/crear_ficha.php', {
+        method: 'POST',
+        body: formData
+      })
+      .then(res => res.json())
+      .then(data => {
+        console.log(data);
+        alert(data.success ? "Ficha creada con éxito." : "Error: " + data.error);
+        if (data.success) {
+          mostrarSeccion("fichas");
+          // Close the modal after success
+          const modal = document.querySelector(".fixed");
+          if (modal) document.body.removeChild(modal);
+        }
+      })
+      .catch(err => {
+        console.error("Error al guardar la ficha:", err);
+        alert("Ocurrió un error al procesar la solicitud.");
+      });
+    }
+
+    // Si el usuario seleccionó un archivo manualmente, usar ese archivo
+    if (archivoInput.files.length > 0) {
+      const archivo = archivoInput.files[0];
+      if (!archivo.type.startsWith("image/")) {
+        alert("Por favor seleccione un archivo de imagen válido.");
+        return;
+      }
+      formData.append('foto', archivo);
+      enviarFicha(formData);
+    } else {
+      // Tomar la imagen del canvas (foto tomada con la cámara)
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      canvas.toBlob(blob => {
+        if (blob) {
+          formData.append('foto', blob, 'ficha.jpg');
+        }
+        enviarFicha(formData);
+      }, 'image/jpeg');
+    }
+  }
+
+  // La función tomarFoto ya no se usa con el nuevo flujo de botón de captura manual
+  // --- Generar reporte PDF del inventario ---
+  async function generarReportePDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      doc.text("Reporte de Inventario", 14, 20);
+
+      // Seleccionar la tabla de inventario (segunda tabla)
+      const tablas = document.querySelectorAll("table");
+      if (tablas.length < 2) {
+          alert("No se encontró la tabla de inventario.");
+          return;
+      }
+      const tablaInventario = tablas[1];
+
+      // Generar el PDF usando autoTable
+      doc.autoTable({
+          html: tablaInventario,
+          startY: 30,
+          theme: 'grid',
+          headStyles: { fillColor: [13, 148, 136] },
+      });
+
+      doc.save('Reporte_Inventario.pdf');
+  }
+  // --- Función para iniciar corte de tela con integración backend ---
+  function iniciarCorteTela() {
+      const ficha = document.getElementById("selectFicha").value;
+      const cantidad = document.getElementById("cantidadPiezas").value;
+      const tamaño = document.getElementById("selectTamaño").value;
+      const admin = document.getElementById("selectAdminLinea").value;
+      const fechaInicio = document.getElementById("fechaInicio").value;
+      const fechaFin = document.getElementById("fechaFin").value;
+
+      if (!ficha || !cantidad || !tamaño || !admin || !fechaInicio || !fechaFin) {
+          alert("Por favor complete todos los campos para iniciar el corte de tela.");
+          return;
+      }
+
+      const datos = {
+          ficha_id: ficha,
+          cantidad_piezas: cantidad,
+          tamaño: tamaño,
+          admin_id: admin,
+          fecha_inicio: fechaInicio,
+          fecha_fin: fechaFin
+      };
+
+      // Ocultar alerta antes de enviar
+      const alertaFicha = document.getElementById("alertaFichaMateriales");
+      if (alertaFicha) alertaFicha.classList.add("hidden");
+
+      fetch("api/produccion/iniciar_corte.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(datos)
+      })
+      .then(res => res.json())
+      .then(data => {
+          console.log("Respuesta del servidor:", data);
+          const notif = document.getElementById("notificacion");
+          if (data.success) {
+              notif.textContent = "Corte de tela iniciado correctamente.";
+              mostrarSeccion("logistica");  // Refrescar la tabla de cortes
+          } else {
+              // Si el error es que no existe ficha_materiales, mostrar alerta clara
+              if (data.error && data.error.toLowerCase().includes("ficha_materiales")) {
+                if (alertaFicha) {
+                  alertaFicha.classList.remove("hidden");
+                }
+              }
+              notif.textContent = data.error || "Error al iniciar el corte.";
+          }
+          notif.classList.remove("hidden");
+          setTimeout(() => notif.classList.add("hidden"), 3000);
+      })
+      .catch(err => {
+          console.error("Error al enviar datos al backend:", err);
+          alert("Ocurrió un error al procesar la solicitud.");
+      });
   }
   </script>
-  
+<script>
+  // --- Funciones placeholder para editar/eliminar ficha técnica ---
+  function editarFicha(id) {
+    fetch(`api/fichas/get_ficha.php?id=${id}`)
+      .then(res => res.json())
+      .then(ficha => {
+        const modal = document.createElement("div");
+        modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
 
+        const modalContent = document.createElement("div");
+        modalContent.className = "bg-white p-6 rounded shadow-md w-96 max-h-[80vh] overflow-y-auto";
+
+        modalContent.innerHTML = `
+          <h2 class="text-lg font-semibold mb-4">Editar Ficha Técnica</h2>
+          <input value="${ficha.nombre}" placeholder="Nombre del Pantalón" class="w-full border p-2 mb-2 text-sm rounded" id="nombreFichaEditar">
+          <textarea placeholder="Descripción" class="w-full border p-2 mb-2 text-sm rounded" id="descripcionFichaEditar">${ficha.descripcion}</textarea>
+          <input value="${ficha.boton}" placeholder="Cantidad de Botones" type="number" class="w-full border p-2 mb-2 text-sm rounded" id="botonFichaEditar">
+          <input value="${ficha.cierre}" placeholder="Cantidad de Cierres" type="number" class="w-full border p-2 mb-2 text-sm rounded" id="cierreFichaEditar">
+          <input value="${ficha.hilo}" placeholder="Cantidad de Hilos" type="number" class="w-full border p-2 mb-2 text-sm rounded" id="hiloFichaEditar">
+          <input value="${ficha.sku}" placeholder="SKU (ej: SKU001)" class="w-full border p-2 mb-2 text-sm rounded" id="skuFichaEditar">
+          <div class="flex flex-col gap-2 mt-2">
+            <label class="block text-sm font-medium">Actualizar Foto (opcional)</label>
+            <input type="file" accept="image/*" id="fotoArchivoEditar" class="w-full border rounded p-2 text-sm">
+          </div>
+          <div class="flex justify-end space-x-2 mt-4">
+            <button class="bg-gray-300 px-3 py-1 rounded text-sm" onclick="document.body.removeChild(this.closest('.fixed'))">Cancelar</button>
+            <button class="bg-blue-600 text-white px-3 py-1 rounded text-sm" onclick="guardarCambiosFicha(${id})">Guardar Cambios</button>
+          </div>
+        `;
+
+        modal.appendChild(modalContent);
+        document.body.appendChild(modal);
+      })
+      .catch(err => {
+        console.error("Error cargando ficha para editar:", err);
+        alert("Error al cargar la ficha.");
+      });
+  }
+
+  function guardarCambiosFicha(id) {
+    const nombre = document.getElementById("nombreFichaEditar").value;
+    const descripcion = document.getElementById("descripcionFichaEditar").value;
+    const boton = document.getElementById("botonFichaEditar").value;
+    const cierre = document.getElementById("cierreFichaEditar").value;
+    const hilo = document.getElementById("hiloFichaEditar").value;
+    const sku = document.getElementById("skuFichaEditar").value;
+    const archivoInput = document.getElementById("fotoArchivoEditar");
+
+    if (!nombre || !descripcion || !boton || !cierre || !hilo || !sku) {
+      alert("Por favor complete todos los campos.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('id', id);
+    formData.append('nombre', nombre);
+    formData.append('descripcion', descripcion);
+    formData.append('boton', boton);
+    formData.append('cierre', cierre);
+    formData.append('hilo', hilo);
+    formData.append('sku', sku);
+
+    if (archivoInput.files.length > 0) {
+      const archivo = archivoInput.files[0];
+      if (!archivo.type.startsWith("image/")) {
+        alert("Por favor seleccione un archivo de imagen válido.");
+        return;
+      }
+      formData.append('foto', archivo);
+    }
+
+    fetch('api/fichas/editar_ficha.php', {
+      method: 'POST',
+      body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+      console.log(data);
+      alert(data.success ? "Ficha actualizada correctamente." : "Error: " + data.error);
+      if (data.success) {
+        mostrarSeccion("fichas");
+        const modal = document.querySelector(".fixed");
+        if (modal) document.body.removeChild(modal);
+      }
+    })
+    .catch(err => {
+      console.error("Error al actualizar la ficha:", err);
+      alert("Ocurrió un error al procesar la solicitud.");
+    });
+  }
+
+  function eliminarFicha(id) {
+    if (!confirm("¿Estás seguro de eliminar esta ficha técnica?")) return;
+
+    fetch("api/fichas/delete_ficha.php", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id })
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert("Ficha eliminada correctamente");
+        mostrarSeccion("fichas");
+      } else {
+        alert("Error al eliminar ficha: " + data.error);
+      }
+    })
+    .catch(err => {
+      console.error("Error eliminando ficha:", err);
+      alert("Error al conectar con el servidor.");
+    });
+  }
+  
+    document.addEventListener("DOMContentLoaded", () => {
+    const originalMostrarSeccion = window.mostrarSeccion || function () {};
+  window.mostrarSeccion = function (nombre) {
+    if (typeof originalMostrarSeccion === "function") {
+      originalMostrarSeccion(nombre);
+    }
+    if (nombre === "pedidos") {
+      document.getElementById("content").innerHTML = secciones.pedidos;
+
+      document.getElementById("formPedido").addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const producto = document.getElementById("producto").value;
+        const cantidad = document.getElementById("cantidad").value;
+        const res = await fetch("api/pedidos/registrar_pedido.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ producto, cantidad })
+        });
+        const data = await res.json();
+        if (data.success) {
+          alert("Pedido registrado correctamente");
+          mostrarSeccion("pedidos");
+        } else {
+          alert("Error al registrar el pedido");
+        }
+      });
+
+      fetch("api/pedidos/listar_pedidos.php")
+        .then(res => res.json())
+        .then(pedidos => {
+          const lista = document.getElementById("listaPedidos");
+          lista.innerHTML = "";
+          if (Array.isArray(pedidos)) {
+            pedidos.forEach(p => {
+              const item = document.createElement("div");
+              item.className = "neumorphism-card p-3";
+              item.innerHTML = `<strong>${p.producto}</strong> - ${p.cantidad} unidades - ${p.fecha}`;
+              lista.appendChild(item);
+            });
+          } else {
+            lista.innerHTML = `<div class='text-red-500'>No se pudo cargar la lista de pedidos.</div>`;
+          }
+        })
+        .catch(err => {
+          console.error("Error cargando pedidos:", err);
+          document.getElementById("listaPedidos").innerHTML = `<div class='text-red-500'>Error al cargar pedidos.</div>`;
+        });
+    }
+  };
+});
+</script>
+<div class="max-w-4xl mx-auto neumorphic p-6 mb-8">
+    <h2 class="text-2xl font-bold mb-4 text-center">Registrar Pedido</h2>
+    <form id="formPedido" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <input type="text" id="cliente" placeholder="Nombre del Cliente" class="p-3 rounded neumorphic-inner" required>
+      <input type="number" id="cantidad" placeholder="Cantidad" class="p-3 rounded neumorphic-inner" required>
+      <input type="date" id="fechaRegistro" class="p-3 rounded neumorphic-inner" required>
+      <input type="date" id="fechaEntrega" class="p-3 rounded neumorphic-inner" required>
+      <select id="producto" class="col-span-1 md:col-span-2 p-3 rounded neumorphic-inner">
+        <option value="">Seleccione un producto</option>
+      </select>
+      <div class="col-span-1 md:col-span-2 text-center">
+        <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded shadow-md hover:bg-blue-600">Registrar</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="max-w-4xl mx-auto neumorphic p-6">
+    <h2 class="text-xl font-semibold mb-4 text-center">Pedidos Registrados</h2>
+    <div class="overflow-x-auto">
+      <table id="tablaPedidos">
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Producto</th>
+            <th>Cantidad</th>
+            <th>Registro</th>
+            <th>Entrega</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td colspan="5" class="text-center">Cargando...</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    async function cargarProductos() {
+      try {
+        const res = await fetch("api/productos/listar_productos.php");
+        const productos = await res.json();
+        const select = document.getElementById("producto");
+        if (Array.isArray(productos)) {
+          productos.forEach(p => {
+            const option = document.createElement("option");
+            option.value = p.id;
+            option.textContent = p.nombre;
+            select.appendChild(option);
+          });
+        }
+      } catch (err) {
+        console.error("Error al cargar productos:", err);
+      }
+    }
+
+    async function cargarPedidos() {
+      try {
+        const res = await fetch("api/pedidos/listar_pedidos.php");
+        const pedidos = await res.json();
+        const tbody = document.getElementById("tablaPedidos").querySelector("tbody");
+        tbody.innerHTML = "";
+        if (Array.isArray(pedidos)) {
+          pedidos.forEach(p => {
+            const row = document.createElement("tr");
+            row.innerHTML = `
+              <td>${p.cliente}</td>
+              <td>${p.producto}</td>
+              <td>${p.cantidad}</td>
+              <td>${p.fecha_registro}</td>
+              <td>${p.fecha_entrega}</td>
+            `;
+            tbody.appendChild(row);
+          });
+        } else {
+          tbody.innerHTML = "<tr><td colspan='5' class='text-center text-red-600'>Error al cargar pedidos</td></tr>";
+        }
+      } catch (err) {
+        console.error("Error cargando pedidos:", err);
+      }
+    }
+
+    document.getElementById("formPedido").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const datos = {
+        cliente: document.getElementById("cliente").value,
+        cantidad: document.getElementById("cantidad").value,
+        fecha_registro: document.getElementById("fechaRegistro").value,
+        fecha_entrega: document.getElementById("fechaEntrega").value,
+        producto: document.getElementById("producto").value
+      };
+      try {
+        const res = await fetch("api/pedidos/registrar_pedido.php", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(datos)
+        });
+        const result = await res.json();
+        if (result.success) {
+          alert("Pedido registrado exitosamente.");
+          cargarPedidos();
+          document.getElementById("formPedido").reset();
+        } else {
+          alert("Error: " + result.error);
+        }
+      } catch (err) {
+        console.error("Error al registrar pedido:", err);
+      }
+    });
+
+    cargarProductos();
+    cargarPedidos();
+  </script>
 </body>
 </html>

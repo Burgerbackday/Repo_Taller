@@ -2,84 +2,200 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Panel del Operador</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Panel de Operadora</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background: #dde7f0;
+      font-family: 'Poppins', sans-serif;
+    }
+    .neumorphic {
+      background: #dde7f0;
+      border-radius: 12px;
+      box-shadow: 7px 7px 15px #a5b3c6, -7px -7px 15px #ffffff;
+    }
+  </style>
 </head>
-<body class="bg-white text-gray-800">
+<body class="text-gray-800 pb-24">
 
-  <!-- Contenedor principal -->
-  <div id="content" class="pb-24 px-4 pt-6"></div>
-
-  <!-- Menú inferior -->
-  <div class="fixed bottom-0 w-full bg-white flex justify-around items-center py-3 border-t shadow-md">
-    <div id="btn-usuario" class="relative group flex flex-col items-center text-gray-500 hover:text-teal-600">
-      <button class="focus:outline-none mt-1">
+  <!-- Encabezado -->
+  <header class="neumorphic text-blue-900 py-4 px-6 flex justify-between items-center shadow mx-4 mt-4 bg-[#d2e7f8]">
+    <div>
+      <h1 class="text-2xl font-bold">Panel de Producción - Operaria</h1>
+      <p class="text-sm">Bienvenida, <span id="nombreOperaria">Operadora</span></p>
+    </div>
+    <div class="relative group flex flex-col items-center text-gray-500">
+      <button class="focus:outline-none">
         <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.004 9.004 0 0112 15c2.003 0 3.864.66 5.304 1.768M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
         </svg>
       </button>
-      <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 bg-white border rounded shadow-md w-32 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
-        <div id="perfil-info" style="display: none;" class="px-4 py-2 border-b text-sm text-gray-600">
-          <div><strong>Persona:</strong> <span id="info-usuario">-</span></div>
-          <div><strong>Jerarquía:</strong> <span id="info-jerarquia">-</span></div>
-        </div>
-        <button id="btn-ver-perfil" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">View Profile</button>
-        <button onclick="window.location.href='index.html'" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Sign Out</button>
+      <div class="absolute bottom-[-90px] left-1/2 transform -translate-x-1/2 bg-white border rounded shadow-md w-32 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
+        <button onclick="mostrarSeccion('cuenta')" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">View Profile</button>
+        <button onclick="cerrarSesion()" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Sign Out</button>
       </div>
     </div>
+  </header>
 
-    <button onclick="mostrarSeccion('asignacion')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-asignacion">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+  <!-- Contenido dinámico -->
+  <main class="p-6 space-y-8" id="contenido"></main>
+
+  <!-- Barra de navegación -->
+  <nav class="fixed bottom-0 w-full bg-white border-t flex justify-around items-center py-2 shadow-inner">
+    <button onclick="mostrarSeccion('cuenta')" class="flex flex-col items-center text-gray-500 hover:text-blue-600">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.004 9.004 0 0112 15c2.003 0 3.864.66 5.304 1.768M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+    </button>
+    <button onclick="mostrarSeccion('panel')" class="flex flex-col items-center text-gray-500 hover:text-blue-600">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
       </svg>
     </button>
-  </div>
+    <button onclick="mostrarSeccion('fichas')" class="flex flex-col items-center text-gray-500 hover:text-blue-600">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-6h13M5 12H3m0 0v6m0-6V6" />
+      </svg>
+    </button>
+  </nav>
 
   <script>
-    const jerarquia = localStorage.getItem("jerarquiaUsuario");
-    const nombreUsuario = localStorage.getItem("nombreUsuario");
-    if (jerarquia !== "2") {
-      window.location.href = "index.html";
-    } else {
-      document.getElementById("info-usuario").textContent = nombreUsuario;
-      document.getElementById("info-jerarquia").textContent = "Obrero";
-    }
-
-    document.getElementById("btn-ver-perfil").addEventListener("click", () => {
-      const perfilDiv = document.getElementById("perfil-info");
-      perfilDiv.style.display = (perfilDiv.style.display === "none") ? "block" : "none";
-    });
+    const nombreUsuario = localStorage.getItem("nombreUsuario") || "Operaria";
+    document.getElementById("nombreOperaria").textContent = nombreUsuario;
 
     function mostrarSeccion(nombre) {
-      if (nombre !== "asignacion") return;
+      const contenedor = document.getElementById("contenido");
+      contenedor.innerHTML = "";
 
-      document.getElementById("content").innerHTML = `
-        <h2 class="text-2xl font-bold mb-4">Mi Tarea Asignada</h2>
-        <div id="contenedor-disponibles" class="grid grid-cols-1 gap-4 text-sm"></div>
-      `;
+      if (nombre === "panel") {
+        contenedor.innerHTML = `
+          <section class='neumorphic p-6 mx-4'>
+            <h2 class='text-xl font-semibold mb-4 text-blue-800'>Tarea Asignada Actual</h2>
+            <div id='tarea-actual' class='space-y-2 text-sm'>
+              <p><strong>Tarea:</strong> <span id='tareaNombre'>Cargando...</span></p>
+              <p><strong>Descripción:</strong> <span id='tareaDesc'>---</span></p>
+              <p><strong>Línea de Producción:</strong> <span id='linea'>---</span></p>
+              <p><strong>Pedido:</strong> <span id='pedido'>---</span></p>
+            </div>
+          </section>
+          <section class='neumorphic p-6 mx-4 mt-6'>
+            <h2 class='text-xl font-semibold mb-4 text-blue-800'>Historial de Tareas</h2>
+            <div class='overflow-x-auto rounded-lg'>
+              <table class='min-w-full text-sm text-left border border-gray-300'>
+                <thead class='bg-gray-100'>
+                  <tr>
+                    <th class='border px-4 py-2'>Tarea</th>
+                    <th class='border px-4 py-2'>Línea</th>
+                    <th class='border px-4 py-2'>Pedido</th>
+                    <th class='border px-4 py-2'>Fecha</th>
+                  </tr>
+                </thead>
+                <tbody id='historialTareas'>
+                  <tr><td colspan='4' class='text-center py-4'>Cargando historial...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </section>`;
 
-      fetch("api/tareas/get_operadores.php")
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) {
-            const miTarea = data.find(op => op.nombre === nombreUsuario);
-            if (miTarea) {
-              document.getElementById("contenedor-disponibles").innerHTML = `
-                <div class="p-6 bg-white border-2 border-teal-600 rounded-lg shadow-lg col-span-2">
-                  <h2 class="text-3xl font-bold text-teal-700 mb-4">Tarea Asignada</h2>
-                  <h3 class="text-xl font-semibold text-gray-800">${miTarea.tarea_asignada}</h3>
-                  <p class="text-lg mt-3 text-gray-700">${miTarea.descripcion}</p>
-                </div>
-              `;
+        fetch(`api/tareas/get_tarea_operaria.php?nombre=${encodeURIComponent(nombreUsuario)}`)
+          .then(res => res.json())
+          .then(data => {
+            document.getElementById("tareaNombre").textContent = data.tarea || "Sin asignar";
+            document.getElementById("tareaDesc").textContent = data.descripcion || "-";
+            document.getElementById("linea").textContent = data.linea_produccion || "-";
+            document.getElementById("pedido").textContent = data.pedido || "-";
+
+            const tbody = document.getElementById("historialTareas");
+            tbody.innerHTML = "";
+            if (data.historial && Array.isArray(data.historial)) {
+              data.historial.forEach(t => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                  <td class='border px-4 py-2'>${t.tarea}</td>
+                  <td class='border px-4 py-2'>${t.linea_produccion}</td>
+                  <td class='border px-4 py-2'>${t.pedido}</td>
+                  <td class='border px-4 py-2'>${t.fecha}</td>`;
+                tbody.appendChild(tr);
+              });
+            } else {
+              tbody.innerHTML = `<tr><td colspan='4' class='text-center py-4'>Sin historial disponible.</td></tr>`;
             }
-          }
-        })
-        .catch(err => console.error("Error cargando operadores:", err));
+          });
+      }
+
+      if (nombre === "cuenta") {
+        contenedor.innerHTML = `
+          <section class='neumorphic p-6 mx-4'>
+            <h2 class='text-xl font-semibold mb-4 text-blue-800'>Perfil de la Operaria</h2>
+            <div class='flex items-center gap-4'>
+              <img id='fotoPerfil' src='img/perfil_operaria.jpg' alt='Foto de perfil' class='w-24 h-24 rounded-full border border-blue-300 shadow'>
+              <div>
+                <p class='text-sm'><strong>Nombre:</strong> ${nombreUsuario}</p>
+                <p class='text-sm'><strong>Correo:</strong> ${nombreUsuario.toLowerCase()}@ejemplo.com</p>
+                <p class='text-sm'><strong>Rol:</strong> Operaria</p>
+                <form id=\"formFotoPerfil\" enctype=\"multipart/form-data\">
+                  <label class='text-xs mt-2 inline-block'>Actualizar foto:
+                    <input type='file' name='foto' accept='image/*' onchange='subirFotoPerfil(event)' class='text-xs block mt-1'>
+                  </label>
+                </form>
+              </div>
+            </div>
+          </section>`;
+      }
+
+      if (nombre === "fichas") {
+        contenedor.innerHTML = `
+          <section class='neumorphic p-6 mx-4'>
+            <h2 class='text-xl font-semibold mb-4 text-blue-800'>Fichas Técnicas de Pantalones</h2>
+            <div id='contenedor-fichas' class='grid gap-4 sm:grid-cols-2'></div>
+          </section>`;
+        fetch("api/fichas/get_fichas.php")
+          .then(res => res.json())
+          .then(data => {
+            const contenedorFichas = document.getElementById("contenedor-fichas");
+            contenedorFichas.innerHTML = "";
+            data.forEach(f => {
+              const div = document.createElement("div");
+              div.className = "neumorphic p-4";
+              div.innerHTML = `
+                <img src="img/${f.sku || 'placeholder'}.jpg" alt="${f.nombre}" class="w-full h-48 object-cover rounded mb-3">
+                <h3 class='font-semibold text-lg text-blue-800 mb-1'>${f.nombre}</h3>
+                <p class='text-sm text-gray-700 mb-2'>${f.descripcion}</p>
+                <p class='text-xs text-gray-600'><strong>Botones:</strong> ${f.boton}</p>
+                <p class='text-xs text-gray-600'><strong>Cierres:</strong> ${f.cierre}</p>
+                <p class='text-xs text-gray-600'><strong>Hilos:</strong> ${f.hilo}</p>`;
+              contenedorFichas.appendChild(div);
+            });
+          });
+      }
     }
 
-    mostrarSeccion("asignacion");
-  </script>
+    function cerrarSesion() {
+      localStorage.clear();
+      window.location.href = 'index.html';
+    }
 
+    function subirFotoPerfil(event) {
+      const archivo = event.target.files[0];
+      if (!archivo || !archivo.type.startsWith("image/")) return;
+      const formData = new FormData();
+      formData.append("foto", archivo);
+      formData.append("usuario", nombreUsuario);
+      fetch("api/operaria/upload_foto.php", {
+        method: "POST",
+        body: formData
+      }).then(res => res.json()).then(data => {
+        if (data.success && data.url) {
+          document.getElementById("fotoPerfil").src = data.url;
+        } else {
+          alert("Error al subir la foto.");
+        }
+      }).catch(() => alert("Error al contactar con el servidor."));
+    }
+
+    mostrarSeccion("panel");
+  </script>
 </body>
 </html>
