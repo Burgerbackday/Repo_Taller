@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Panel de Operadora - Sistema de Producción</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      font-family: 'Poppins', sans-serif;
+      min-height: 100vh;
+    }
+    
+    .glass-card {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .glass-card-light {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+    
+    .gradient-text {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: all 0.3s ease;
+    }
+    
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+    }
+    
+    .animate-fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    .floating-card {
+      animation: float 6s ease-in-out infinite;
+    }
+    
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .notification {
+      animation: slideIn 0.5s ease-out;
+    }
+    
+    @keyframes slideIn {
+      from { transform: translateX(100%); }
+      to { transform: translateX(0); }
+    }
+
+    /* Carousel styles */
+    .carousel-container {
+      overflow: hidden;
+      border-radius: 16px;
+    }
+    
+    .carousel-track {
+      display: flex;
+      transition: transform 0.5s ease;
+    }
+    
+    .carousel-slide {
+      min-width: 100%;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+<body class="text-white">
+
+  <!-- Header -->
+  <header class="glass-card mx-4 mt-4 p-6">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center space-x-4">
+        <div class="relative">
+          <div class="w-16 h-16 bg-gradient-to-r from-pink-400 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-2xl">
+            <i class="fas fa-user"></i>
+          </div>
+        </div>
+        <div>
+          <h1 class="text-2xl font-bold text-white">Panel de Operadora</h1>
+          <p class="text-purple-100">Bienvenida, <span id="nombreOperaria" class="font-semibold">Operadora</span></p>
+          <div class="flex items-center mt-1 text-sm text-purple-200">
+            <i class="fas fa-clock mr-2"></i>
+            <span id="fechaHora"></span>
+          </div>
+        </div>
+      </div>
+      
+      <button onclick="cerrarSesion()" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg transition-colors">
+        <i class="fas fa-sign-out-alt mr-2"></i>Cerrar Sesión
+      </button>
+    </div>
+  </header>
+
+  <!-- Contenido principal -->
+  <main class="p-4 space-y-6">
+    
+    <!-- Sección de Mi Tarea -->
+    <div class="glass-card-light p-6">
+      <h2 class="text-2xl font-bold gradient-text mb-6">
+        <i class="fas fa-tasks mr-3"></i>Mi Tarea Asignada
+      </h2>
+      <div id="contenido-tarea">
+        <div class="text-center py-8 text-gray-500">
+          <i class="fas fa-spinner fa-spin text-4xl mb-3"></i>
+          <p>Cargando información de la tarea...</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Carrusel de Fichas Técnicas -->
+    <div class="glass-card-light p-6">
+      <h2 class="text-2xl font-bold gradient-text mb-6">
+        <i class="fas fa-file-alt mr-3"></i>Fichas Técnicas
+      </h2>
+      
+      <div class="carousel-container relative">
+        <div class="carousel-track" id="carousel-track">
+          <!-- Las fichas se cargarán aquí dinámicamente -->
+        </div>
+        
+        <!-- Controles del carousel -->
+        <button id="prev-btn" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-full transition-all">
+          <i class="fas fa-chevron-left"></i>
+        </button>
+        <button id="next-btn" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-20 hover:bg-opacity-30 text-white p-3 rounded-full transition-all">
+          <i class="fas fa-chevron-right"></i>
+        </button>
+        
+        <!-- Indicadores -->
+        <div class="flex justify-center mt-4 space-x-2" id="carousel-indicators">
+          <!-- Los indicadores se generarán dinámicamente -->
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Notificaciones flotantes -->
+  <div id="notificaciones" class="fixed top-4 right-4 space-y-2 z-50"></div>
+
+  <!-- Loading spinner -->
+  <div id="loadingSpinner" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+    <div class="glass-card p-6 flex items-center space-x-4">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-white"></div>
+      <span class="text-white font-medium">Cargando...</span>
+    </div>
+  </div>
+
+  <script>
+    // Variables globales
+    const nombreUsuario = localStorage.getItem("nombreUsuario") || "Operadora";
+    let tareaActual = null;
+    let fichasTecnicas = [];
+    let currentSlide = 0;
+
+    // Inicialización
+    document.addEventListener('DOMContentLoaded', function() {
+      document.getElementById("nombreOperaria").textContent = nombreUsuario;
+      actualizarFechaHora();
+      cargarTareaActual();
+      cargarFichasTecnicas();
+      
+      // Actualizar fecha cada minuto
+      setInterval(actualizarFechaHora, 60000);
+      
+      // Verificar tarea cada 30 segundos
+      setInterval(cargarTareaActual, 30000);
+    });
+
+    // === FUNCIONES DE FECHA Y HORA ===
+    function actualizarFechaHora() {
+      const ahora = new Date();
+      const opciones = { 
+        weekday: 'long', 
+        year: 'numeric', 
+        month: 'long', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      };
+      document.getElementById('fechaHora').textContent = ahora.toLocaleDateString('es-MX', opciones);
+    }
+
+    // === GESTIÓN DE TAREAS ===
+    async function cargarTareaActual() {
+      try {
+        const response = await fetch(`api/tareas/get_tarea_operaria.php?nombre=${encodeURIComponent(nombreUsuario)}`);
+        const data = await response.json();
+        
+        const contenedor = document.getElementById('contenido-tarea');
+        
+        if (data.success && data.tarea) {
+          tareaActual = data;
+          mostrarTareaAsignada(contenedor, data);
+        } else {
+          mostrarSinTarea(contenedor);
+        }
+      } catch (error) {
+        console.error('Error cargando tarea:', error);
+        mostrarErrorTarea();
+      }
+    }
+
+    function mostrarTareaAsignada(contenedor, tarea) {
+      const porcentajeProgreso = tarea.meta_diaria > 0 ? 
+        Math.round((tarea.progreso_actual / tarea.meta_diaria) * 100) : 0;
+      
+      contenedor.innerHTML = `
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div>
+              <h3 class="text-2xl font-bold text-gray-800 mb-4">${tarea.tarea}</h3>
+              <div class="space-y-3 text-sm">
+                <div class="flex items-center">
+                  <i class="fas fa-info-circle text-blue-500 mr-3 w-4"></i>
+                  <span><strong>Descripción:</strong> ${tarea.descripcion || 'Sin descripción específica'}</span>
+                </div>
+                <div class="flex items-center">
+                  <i class="fas fa-industry text-green-500 mr-3 w-4"></i>
+                  <span><strong>Línea:</strong> ${tarea.linea_produccion || 'General'}</span>
+                </div>
+                <div class="flex items-center">
+                  <i class="fas fa-box text-purple-500 mr-3 w-4"></i>
+                  <span><strong>Pedido:</strong> ${tarea.pedido || 'No especificado'}</span>
+                </div>
+                <div class="flex items-center">
+                  <i class="fas fa-flag text-orange-500 mr-3 w-4"></i>
+                  <span><strong>Prioridad:</strong> 
+                    <span class="px-2 py-1 rounded text-xs ${getPrioridadClass(tarea.prioridad)}">
+                      ${tarea.prioridad?.toUpperCase() || 'MEDIA'}
+                    </span>
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <div>
+              <h4 class="font-semibold text-gray-800 mb-3">Progreso</h4>
+              <div class="space-y-4">
+                <div>
+                  <div class="flex justify-between mb-2">
+                    <span class="text-sm">Meta Diaria</span>
+                    <span class="text-sm font-semibold">${tarea.progreso_actual || 0}/${tarea.meta_diaria || 0} piezas</span>
+                  </div>
+                  <div class="w-full bg-gray-200 rounded-full h-4">
+                    <div class="bg-gradient-to-r from-green-400 to-blue-500 h-4 rounded-full flex items-center justify-center text-xs text-white font-bold transition-all duration-500" 
+                         style="width: ${Math.min(porcentajeProgreso, 100)}%">
+                      ${porcentajeProgreso}%
+                    </div>
+                  </div>
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4 text-center">
+                  <div class="bg-white p-3 rounded-lg">
+                    <div class="text-lg font-bold text-blue-600">${tarea.progreso_actual || 0}</div>
+                    <div class="text-xs text-gray-600">Completadas</div>
+                  </div>
+                  <div class="bg-white p-3 rounded-lg">
+                    <div class="text-lg font-bold text-green-600">${(tarea.meta_diaria || 0) - (tarea.progreso_actual || 0)}</div>
+                    <div class="text-xs text-gray-600">Restantes</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botón de completar tarea -->
+          <div class="text-center">
+            ${porcentajeProgreso >= 100 ? `
+              <button onclick="completarTarea()" 
+                      class="bg-green-600 hover:bg-green-700 text-white px-8 py-4 rounded-xl font-bold text-lg transition-colors">
+                <i class="fas fa-check-circle mr-3"></i>¡Tarea Completada!
+              </button>
+            ` : `
+              <div class="bg-yellow-50 border border-yellow-200 p-4 rounded-lg">
+                <p class="text-yellow-800 font-medium">
+                  <i class="fas fa-info-circle mr-2"></i>
+                  Completa tu meta diaria para poder finalizar la tarea
+                </p>
+                <p class="text-sm text-yellow-600 mt-1">
+                  Te faltan ${(tarea.meta_diaria || 0) - (tarea.progreso_actual || 0)} piezas
+                </p>
+              </div>
+            `}
+          </div>
+        </div>
+      `;
+    }
+
+    function mostrarSinTarea(contenedor) {
+      contenedor.innerHTML = `
+        <div class="text-center py-12">
+          <i class="fas fa-clipboard-list text-6xl text-gray-400 mb-4"></i>
+          <h3 class="text-xl font-semibold text-gray-600 mb-2">Sin tarea asignada</h3>
+          <p class="text-gray-500">Esperando asignación de tarea por parte del supervisor</p>
+        </div>
+      `;
+    }
+
+    function mostrarErrorTarea() {
+      const contenedor = document.getElementById('contenido-tarea');
+      contenedor.innerHTML = `
+        <div class="text-center py-8 text-red-500">
+          <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+          <p>Error al cargar la información de la tarea</p>
+          <button onclick="cargarTareaActual()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+            <i class="fas fa-redo mr-2"></i>Reintentar
+          </button>
+        </div>
+      `;
+    }
+
+    // === COMPLETAR TAREA ===
+    async function completarTarea() {
+      if (!confirm('¿Estás segura de que has completado tu tarea?')) {
+        return;
+      }
+
+      try {
+        const response = await fetch('api/operadoras/completar_tarea.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            nombre: nombreUsuario,
+            tarea_id: tareaActual?.id || 0
+          })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+          mostrarNotificacion('¡Tarea completada exitosamente! 🎉', 'success');
+          tareaActual = null;
+          setTimeout(() => {
+            cargarTareaActual();
+          }, 1000);
+        } else {
+          mostrarNotificacion('Error al completar tarea: ' + (data.error || 'Error desconocido'), 'error');
+        }
+      } catch (error) {
+        console.error('Error completando tarea:', error);
+        mostrarNotificacion('Error de conexión al completar tarea', 'error');
+      }
+    }
+
+    // === FICHAS TÉCNICAS - CARRUSEL ===
+    async function cargarFichasTecnicas() {
+      try {
+        const response = await fetch('api/fichas/get_fichas.php');
+        const data = await response.json();
+        
+        if (Array.isArray(data) && data.length > 0) {
+          fichasTecnicas = data;
+          crearCarrusel();
+        } else {
+          mostrarMensajeSinFichas();
+        }
+      } catch (error) {
+        console.error('Error cargando fichas técnicas:', error);
+        mostrarErrorFichas();
+      }
+    }
+
+    function crearCarrusel() {
+      const track = document.getElementById('carousel-track');
+      const indicators = document.getElementById('carousel-indicators');
+      
+      // Limpiar contenido anterior
+      track.innerHTML = '';
+      indicators.innerHTML = '';
+      
+      // Crear slides
+      fichasTecnicas.forEach((ficha, index) => {
+        const slide = document.createElement('div');
+        slide.className = 'carousel-slide px-4';
+        slide.innerHTML = `
+          <div class="bg-white rounded-xl p-6 shadow-lg max-w-md mx-auto">
+            <img src="${ficha.foto}" 
+                 alt="${ficha.nombre}" 
+                 class="w-full h-64 object-cover rounded-lg mb-4"
+                 onerror="this.src='img/placeholder.jpg'">
+            
+            <h3 class="text-xl font-bold text-gray-800 mb-2">${ficha.nombre}</h3>
+            <p class="text-gray-600 text-sm mb-4">${ficha.descripcion}</p>
+            
+            <div class="grid grid-cols-2 gap-3 text-xs">
+              <div class="bg-blue-50 p-2 rounded">
+                <span class="font-medium text-blue-700">Botones:</span>
+                <div class="text-blue-600">${ficha.boton}</div>
+              </div>
+              <div class="bg-green-50 p-2 rounded">
+                <span class="font-medium text-green-700">Cierres:</span>
+                <div class="text-green-600">${ficha.cierre}</div>
+              </div>
+              <div class="bg-purple-50 p-2 rounded">
+                <span class="font-medium text-purple-700">Hilos:</span>
+                <div class="text-purple-600">${ficha.hilo}</div>
+              </div>
+              <div class="bg-orange-50 p-2 rounded">
+                <span class="font-medium text-orange-700">SKU:</span>
+                <div class="text-orange-600">${ficha.sku}</div>
+              </div>
+            </div>
+          </div>
+        `;
+        track.appendChild(slide);
+        
+        // Crear indicador
+        const indicator = document.createElement('button');
+        indicator.className = `w-3 h-3 rounded-full transition-colors ${index === 0 ? 'bg-white' : 'bg-white bg-opacity-50'}`;
+        indicator.onclick = () => goToSlide(index);
+        indicators.appendChild(indicator);
+      });
+      
+      // Configurar controles
+      document.getElementById('prev-btn').onclick = prevSlide;
+      document.getElementById('next-btn').onclick = nextSlide;
+      
+      // Auto-play del carrusel
+      setInterval(nextSlide, 5000);
+    }
+
+    function goToSlide(index) {
+      currentSlide = index;
+      updateCarousel();
+    }
+
+    function nextSlide() {
+      currentSlide = (currentSlide + 1) % fichasTecnicas.length;
+      updateCarousel();
+    }
+
+    function prevSlide() {
+      currentSlide = (currentSlide - 1 + fichasTecnicas.length) % fichasTecnicas.length;
+      updateCarousel();
+    }
+
+    function updateCarousel() {
+      const track = document.getElementById('carousel-track');
+      const indicators = document.getElementById('carousel-indicators').children;
+      
+      track.style.transform = `translateX(-${currentSlide * 100}%)`;
+      
+      // Actualizar indicadores
+      Array.from(indicators).forEach((indicator, index) => {
+        indicator.className = `w-3 h-3 rounded-full transition-colors ${
+          index === currentSlide ? 'bg-white' : 'bg-white bg-opacity-50'
+        }`;
+      });
+    }
+
+    function mostrarMensajeSinFichas() {
+      document.getElementById('carousel-track').innerHTML = `
+        <div class="carousel-slide">
+          <div class="text-center py-12">
+            <i class="fas fa-file-alt text-6xl text-gray-400 mb-4"></i>
+            <p class="text-gray-500">No hay fichas técnicas disponibles</p>
+          </div>
+        </div>
+      `;
+    }
+
+    function mostrarErrorFichas() {
+      document.getElementById('carousel-track').innerHTML = `
+        <div class="carousel-slide">
+          <div class="text-center py-8 text-red-500">
+            <i class="fas fa-exclamation-triangle text-4xl mb-3"></i>
+            <p>Error al cargar fichas técnicas</p>
+            <button onclick="cargarFichasTecnicas()" class="mt-4 bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+              <i class="fas fa-redo mr-2"></i>Reintentar
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // === FUNCIONES AUXILIARES ===
+    function getPrioridadClass(prioridad) {
+      switch (prioridad?.toLowerCase()) {
+        case 'baja': return 'bg-green-100 text-green-800';
+        case 'media': return 'bg-yellow-100 text-yellow-800';
+        case 'alta': return 'bg-orange-100 text-orange-800';
+        case 'urgente': return 'bg-red-100 text-red-800';
+        default: return 'bg-gray-100 text-gray-800';
+      }
+    }
+
+    function mostrarNotificacion(mensaje, tipo = 'info') {
+      const contenedor = document.getElementById('notificaciones');
+      const notif = document.createElement('div');
+      
+      const colores = {
+        info: 'bg-blue-500',
+        success: 'bg-green-500',
+        warning: 'bg-yellow-500',
+        error: 'bg-red-500'
+      };
+      
+      const iconos = {
+        info: 'fas fa-info-circle',
+        success: 'fas fa-check-circle',
+        warning: 'fas fa-exclamation-triangle',
+        error: 'fas fa-times-circle'
+      };
+
+      notif.className = `notification ${colores[tipo]} text-white p-4 rounded-lg shadow-lg max-w-sm mb-2`;
+      notif.innerHTML = `
+        <div class="flex items-start">
+          <i class="${iconos[tipo]} mr-3 mt-1"></i>
+          <div class="flex-1">
+            <span>${mensaje}</span>
+          </div>
+          <button onclick="this.parentElement.parentElement.remove()" 
+                  class="ml-2 text-white hover:text-gray-200 focus:outline-none">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+      `;
+
+      contenedor.appendChild(notif);
+
+      // Auto-eliminar después de 5 segundos
+      setTimeout(() => {
+        if (notif.parentElement) {
+          notif.remove();
+        }
+      }, 5000);
+    }
+
+    function cerrarSesion() {
+      if (confirm('¿Estás segura de que quieres cerrar sesión?')) {
+        localStorage.clear();
+        window.location.href = 'index.html';
+      }
+    }
+  </script>
+</body>
+</html>

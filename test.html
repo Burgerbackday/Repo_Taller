@@ -1,650 +1,982 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Logistica del taller</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 20px;
-    }
-
-    th, td {
-      border: 1px solid #ddd;
-      padding: 8px;
-    }
-
-    th {
-      background-color: #f2f2f2;
-      text-align: left;
-    }
-  </style>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Sistema de Gestión - Taller</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    <script src="src/inventario.js" defer></script>
+    <script src="src/cargarProductos.js" defer></script>
+    <script src="src/pedidos.js" defer></script>
+    <script src="src/operadores.js" defer></script>
+    <script src="js/reabastecimiento.js"></script>
+    <style>
+        body { background: #e0e5ec; color: #333; font-family: 'Segoe UI', sans-serif; }
+        .neumorphic {
+            background: #e0e5ec;
+            border-radius: 16px;
+            box-shadow: 10px 10px 20px #a3b1c6, -10px -10px 20px #ffffff;
+        }
+        .neumorphic-inner {
+            background: #e0e5ec;
+            border-radius: 16px;
+            box-shadow: inset 8px 8px 16px #a3b1c6, inset -8px -8px 16px #ffffff;
+        }
+        input:focus, select:focus, textarea:focus {
+            box-shadow: inset 2px 2px 5px #babecc, inset -5px -5px 10px #ffffff;
+        }
+        table { border-collapse: collapse; width: 100%; background-color: #fff; border-radius: 12px; overflow: hidden; }
+        th, td { border-bottom: 1px solid #ccc; padding: 12px; text-align: left; }
+        th { background-color: #f0f0f0; font-weight: bold; }
+    </style>
 </head>
 <body class="bg-white text-gray-800">
 
-  <!-- Contenido principal -->
-  <div id="content" class="pb-24 px-4 pt-6"></div>
+<!-- Contenido principal -->
+<div class="pb-24 px-4 pt-6" id="content"></div>
 
-  <!-- Menú inferior -->
-<div class="fixed bottom-0 w-full bg-white flex justify-around items-center py-3 border-t shadow-md">
-  <div id="btn-usuario" class="relative group flex flex-col items-center text-gray-500 hover:text-teal-600">
-    <button class="focus:outline-none mt-1">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5.121 17.804A9.004 9.004 0 0112 15c2.003 0 3.864.66 5.304 1.768M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-      </svg>      
+<!-- Menú inferior -->
+<nav class="fixed bottom-0 w-full bg-white flex justify-around items-center py-3 border-t shadow-md neumorphic">
+    <!-- Perfil de usuario -->
+    <div class="relative group flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-usuario">
+        <button class="focus:outline-none mt-1 neumorphic p-2">
+            <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path d="M5.121 17.804A9.004 9.004 0 0112 15c2.003 0 3.864.66 5.304 1.768M15 11a3 3 0 11-6 0 3 3 0 016 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+            </svg>
+        </button>
+        <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 bg-white border rounded shadow-md w-32 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50 neumorphic">
+            <div class="px-4 py-2 border-b text-sm text-gray-600" id="perfil-info" style="display: none;">
+                <div><strong>Usuario:</strong> <span id="info-usuario">-</span></div>
+                <div><strong>Rol:</strong> <span id="info-jerarquia">-</span></div>
+            </div>
+            <button class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" id="btn-ver-perfil">Ver Perfil</button>
+            <button class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100" onclick="cerrarSesion()">Cerrar Sesión</button>
+        </div>
+    </div>
+
+    <!-- Navegación principal -->
+    <button class="flex flex-col items-center text-gray-500 hover:text-teal-600 neumorphic p-2" id="btn-resumen" onclick="mostrarSeccion('resumen')">
+        <svg class="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+        </svg>
     </button>
-    <div class="absolute bottom-12 left-1/2 transform -translate-x-1/2 bg-white border rounded shadow-md w-32 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-50">
-      <div id="perfil-info" style="display: none;" class="px-4 py-2 border-b text-sm text-gray-600">
-        <div><strong>Persona:</strong> <span id="info-usuario">-</span></div>
-        <div><strong>Jerarquía:</strong> <span id="info-jerarquia">-</span></div>
-      </div>
-      <button id="btn-ver-perfil" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">View Profile</button>
-      <button onclick="window.location.href='index.html'" class="block w-full text-left px-4 py-2 text-sm hover:bg-gray-100">Sign Out</button>
+
+    <button class="flex flex-col items-center text-gray-500 hover:text-teal-600 neumorphic p-2" id="btn-asignacion" onclick="mostrarSeccion('asignacion')">
+        <svg class="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+        </svg>
+    </button>
+
+    <button class="flex flex-col items-center text-gray-500 hover:text-teal-600 neumorphic p-2" id="btn-logistica" onclick="mostrarSeccion('logistica')">
+        <svg class="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+        </svg>
+    </button>
+
+    <button class="flex flex-col items-center text-gray-500 hover:text-teal-600 neumorphic p-2" id="btn-fichas" onclick="mostrarSeccion('fichas')">
+        <svg class="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M9 5h6M9 9h6m-6 4h6m-6 4h6M5 5h.01M5 9h.01M5 13h.01M5 17h.01" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+        </svg>
+    </button>
+
+    <button class="flex flex-col items-center text-gray-500 hover:text-teal-600 neumorphic p-2" id="btn-pedidos" onclick="mostrarSeccion('pedidos')">
+        <svg class="h-6 w-6 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path d="M12 4v16m8-8H4" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+        </svg>
+    </button>
+</nav>
+
+<!-- Modal de Inventario -->
+<div id="formInventarioModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+    <div class="bg-white p-6 rounded shadow w-full max-w-lg neumorphic" id="formInventarioContainer">
+        <h3 id="tituloFormInventario" class="text-lg font-semibold mb-4">Formulario de Inventario</h3>
+        <input type="hidden" id="modoInventario" value="">
+        <input type="hidden" id="idMaterial" value="">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <input id="nombreMaterial" type="text" class="border p-2 rounded text-sm neumorphic-inner" placeholder="Nombre del Material">
+            <input id="cantidadDisponible" type="number" class="border p-2 rounded text-sm neumorphic-inner" placeholder="Cantidad Disponible">
+            <input id="cantidadMinima" type="number" class="border p-2 rounded text-sm neumorphic-inner" placeholder="Cantidad Mínima">
+            <select id="estadoMaterial" class="border p-2 rounded text-sm neumorphic-inner">
+                <option value="">Seleccionar Estado</option>
+                <option value="Disponible">Disponible</option>
+                <option value="Crítico">Crítico</option>
+                <option value="Agotado">Agotado</option>
+            </select>
+        </div>
+        <div class="flex justify-end mt-4 gap-2">
+            <button id="btnCancelarInventario" class="bg-gray-500 text-white px-4 py-2 rounded text-sm">Cancelar</button>
+            <button id="btnGuardarInventario" class="bg-teal-600 text-white px-4 py-2 rounded text-sm">Guardar</button>
+        </div>
     </div>
-  </div>
-  
-  <button onclick="mostrarSeccion('resumen')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-resumen">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18V3H3zm4 14h2v-2H7v2zm0-4h2v-2H7v2zm0-4h2V7H7v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2zm0-4h2V7h-2v2zm4 8h2v-2h-2v2zm0-4h2v-2h-2v2z" />
-    </svg>
-   
-  </button>
-  
-
-  <button onclick="mostrarSeccion('asignacion')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-asignacion">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-    </svg>
-   
-  </button>
-
-  <button onclick="mostrarSeccion('logistica')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-logistica">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c1.657 0 3-1.343 3-3S13.657 2 12 2s-3 1.343-3 3 1.343 3 3 3zM6.343 16.657A8 8 0 1117.657 5.343 8 8 0 016.343 16.657z" />
-    </svg>
-    
-  </button>
-
-  <button onclick="mostrarSeccion('fichas')" class="flex flex-col items-center text-gray-500 hover:text-teal-600" id="btn-fichas">
-    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5h6M9 9h6m-6 4h6m-6 4h6M5 5h.01M5 9h.01M5 13h.01M5 17h.01" />
-    </svg>
-    
-  </button>
 </div>
 
-  </div>
-  <div id="notificacion" class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded shadow-lg text-sm hidden z-50">
-    Actualización exitosa
-  </div>
-  <script>
-    // Obtener los datos del usuario desde localStorage
-    const jerarquia = localStorage.getItem("jerarquiaUsuario");
-    const nombreUsuario = localStorage.getItem("nombreUsuario");
-
-    // Redirigir al login si no hay sesión activa
-    if (!jerarquia) {
-      window.location.href = "index.html";
-    } else {
-      console.log("Usuario autenticado:", nombreUsuario, "| Jerarquía:", jerarquia);
-      const usuarioSpan = document.getElementById("info-usuario");
-      const jerarquiaSpan = document.getElementById("info-jerarquia");
-      if (usuarioSpan) usuarioSpan.textContent = nombreUsuario;
-      if (jerarquiaSpan) jerarquiaSpan.textContent = jerarquia === "1" ? "Administrador" : "Obrero";
-    }
-
-    document.getElementById("btn-ver-perfil").addEventListener("click", () => {
-      const perfilDiv = document.getElementById("perfil-info");
-      if (perfilDiv.style.display === "none") {
-        perfilDiv.style.display = "block";
-      } else {
-        perfilDiv.style.display = "none";
-      }
-    });
-  </script>
-  <!-- Script -->
-  <script>
-    const content = document.getElementById("content");
-    const botones = {
-      resumen: document.getElementById("btn-resumen"),
-      asignacion: document.getElementById("btn-asignacion"),
-      logistica: document.getElementById("btn-logistica"),
-      fichas: document.getElementById("btn-fichas")
-    };
-
-    const secciones = {
-      fichas: `
-  <h2 class="text-2xl font-bold mb-4">Fichas tecnicas</h2>
-  <div class="flex justify-between items-center mb-4">
-    <input type="search" placeholder="Search" class="w-1/2 p-2 bg-gray-100 rounded text-sm" />
-    <button class="bg-teal-600 text-white px-4 py-2 rounded text-sm ml-2">+ Add</button>
-  </div>
-  <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-    <div class="text-center">
-      <img src="pant_jeans_rugged.jpg" class="w-full h-auto mb-2 rounded" />
-      <strong>Pantalón Jeans Rugged</strong><br>Pantalón Jeans Rugged
-    </div>
-    <div class="text-center">
-      <img src="pant_chaqueta_casual.jpg" class="w-full h-auto mb-2 rounded" />
-      <strong>Pantalón Chaqueta Casual</strong><br>Pantalón Chaqueta Casual
-    </div>
-    <div class="text-center">
-      <img src="pant_moto_sport.jpg" class="w-full h-auto mb-2 rounded" />
-      <strong>Pantalón Moto Sport</strong><br>Pantalón Moto Sport
-    </div>
-    <div class="text-center">
-      <img src="pant_moda.jpg" class="w-full h-auto mb-2 rounded" />
-      <strong>Pantalón Moda'</strong><br>Pantalón Moda'
-    </div>
-    <div class="text-center">
-      <img src="pant_hibrido.jpg" class="w-full h-auto mb-2 rounded" />
-      <strong>Pantalón Híbrido</strong><br>Pantalón Híbrido
-    </div>
-    <div class="text-center">
-      <img src="pant_jean.jpg" class="w-full h-auto mb-2 rounded" />
-      <strong>Pantalón Jean</strong><br>Pantalón Jean
-    </div>
-    <div class="text-center">
-      <img src="pant_formal.jpg" class="w-full h-auto mb-2 rounded" />
-      <strong>Pantalón Formal</strong><br>Pantalón Formal
-    </div>
-    <div class="text-center">
-      <img src="pant_sport.jpg" class="w-full h-auto mb-2 rounded" />
-      <strong>Pantalón Sport</strong><br>Pantalón Sport
-    </div>
-    <div class="text-center">
-      <img src="pant_casual.jpg" class="w-full h-auto mb-2 rounded" />
-      <strong>Pantalón Casual</strong><br>Pantalón Casual
-    </div>
-  </div>
-`,
-      resumen: `
-  <h2 class="text-2xl font-bold mb-4">Pedidos</h2>
-  <div class="mb-8 flex justify-center">
-  <canvas id="graficaPedidos" style="max-width: 400px; max-height: 400px;"></canvas>
+<!-- Notificación -->
+<div class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white px-4 py-2 rounded shadow-lg text-sm hidden z-50" id="notificacion">
+    Operación exitosa
 </div>
 
-  <h2 class="text-2xl font-bold mb-4">Disponibilidad</h2>
-  <canvas id="graficaDisponibilidad" class="mb-8"></canvas>
-`,
+<script>
+// === CONFIGURACIÓN GLOBAL ===
+const jerarquia = localStorage.getItem("jerarquiaUsuario");
+const nombreUsuario = localStorage.getItem("nombreUsuario");
 
-      asignacion: `
-  <h2 class="text-2xl font-bold mb-4">Operadores Disponibles</h2>
-  <div id="contenedor-disponibles" class="grid grid-cols-2 gap-4 text-sm"></div>
-  ${jerarquia !== "2" ? `
-    <h2 class="text-2xl font-bold mt-6 mb-2">Asignacion de Tareas</h2>
-    <input type="text" placeholder="Buscar" class="w-full p-2 border rounded mb-4" />
-    <div id="contenedor-operadores" class="space-y-2"></div>
-  ` : ""}
-`,
-      logistica: `
-  <h2 class="text-xl font-semibold mb-4">Registro de ventas completadas</h2>
-  <div class="bg-white p-4 rounded shadow border mb-6">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-      <div>
-        <label class="block text-sm font-medium">Fecha inicio</label>
-        <input type="date" class="w-full border rounded p-2 text-sm" value="2025-04-07" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Fecha fin</label>
-        <input type="date" class="w-full border rounded p-2 text-sm" value="2025-04-07" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Responsable</label>
-        <select class="w-full border rounded p-2 text-sm">
-          <option>Ana Moreno</option>
-        </select>
-      </div>
-    </div>
-    <button class="bg-teal-600 text-white px-4 py-2 rounded text-sm">Aplicar filtros</button>
-
-    <div class="mt-6">
-      <button class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs">Cliente Interno</button>
-    </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
-      <div>
-        <label class="block text-sm font-medium">Cliente</label>
-        <input type="text" class="w-full border rounded p-2 text-sm" value="Cliente Interno" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Producto</label>
-        <select class="w-full border rounded p-2 text-sm">
-          <option>Modelo A - Talla S</option>
-        </select>
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Cantidad</label>
-        <input type="number" class="w-full border rounded p-2 text-sm" value="500" />
-      </div>
-      <div>
-        <label class="block text-sm font-medium">Precio Unitario</label>
-        <input type="number" class="w-full border rounded p-2 text-sm" value="25.5" />
-      </div>
-    </div>
-
-    <div class="mt-4 text-sm">
-      <label class="block font-medium mb-1">Estado del Pedido</label>
-      <label class="mr-4"><input type="radio" name="estado" checked /> Pendiente</label>
-      <label class="mr-4"><input type="radio" name="estado" /> Procesado</label>
-      <label class="mr-4"><input type="radio" name="estado" /> Entregado</label>
-      <label><input type="radio" name="estado" /> Cerrado</label>
-    </div>
-
-    <div class="mt-4 text-sm">
-      <strong>Total: <span class="text-teal-600">$255</span></strong> <span class="text-gray-500">(Cálculo automático: Cantidad × Precio Unitario)</span>
-    </div>
-
-    <div class="mt-4 flex flex-wrap gap-3">
-      <button class="bg-teal-600 text-white px-4 py-2 rounded text-sm">Confirmar Pedido</button>
-      <button class="bg-gray-200 px-4 py-2 rounded text-sm">Actualizar Estado</button>
-      <button class="bg-green-600 text-white px-4 py-2 rounded text-sm">Marcar como Entregado y Cerrar</button>
-    </div>
-
-    <h3 class="text-lg font-semibold mb-2">Pedidos</h3>
-    <div class="flex justify-between items-center mb-2">
-      <input type="search" class="border p-2 rounded text-sm" placeholder="Search" />
-      <button class="bg-teal-600 text-white px-4 py-1 rounded text-sm">+ Agregar.</button>
-    </div>
-
-    <table class="w-full text-sm border">
-      <thead class="bg-gray-100 text-left">
-        <tr>
-          <th class="p-2 border">ID</th>
-          <th class="p-2 border">MATERIAL</th>
-          <th class="p-2 border">CANTIDAD_DISPONIBLE</th>
-          <th class="p-2 border">CANTIDAD_MINIMA</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="border-t"><td class="p-2 border">1</td><td class="p-2 border">Jorge Morales</td><td class="p-2 border">Pantalon de Vestir</td><td class="p-2 border">1200</td></tr>
-        <tr class="border-t"><td class="p-2 border">3635</td><td class="p-2 border">Claudia Sheinbaun</td><td class="p-2 border">Pantalon de Mezclilla</td><td class="p-2 border">400</td></tr>
-        <tr class="border-t"><td class="p-2 border">6468</td><td class="p-2 border">Andres Lopez</td><td class="p-2 border">Pantalon de Vestir</td><td class="p-2 border">500</td></tr>
-        <tr class="border-t"><td class="p-2 border">3580</td><td class="p-2 border">Carlos Salinas</td><td class="p-2 border">Jeans</td><td class="p-2 border">999</td></tr>
-        <tr class="border-t"><td class="p-2 border">33312</td><td class="p-2 border">Carlos Salinas</td><td class="p-2 border">Jeans</td><td class="p-2 border">888</td></tr>
-        <!-- Más filas... -->
-      </tbody>
-    </table>
-
-    <h3 class="text-lg font-semibold mb-2 mt-8">Inventario</h3>
-    <div class="flex justify-between items-center mb-2">
-      <input type="search" class="border p-2 rounded text-sm" placeholder="Search" />
-      <button class="bg-teal-600 text-white px-4 py-1 rounded text-sm">+ Agregar.</button>
-    </div>
-
-    <table class="w-full text-sm border">
-      <thead class="bg-gray-100 text-left">
-        <tr>
-          <th class="p-2 border">ID</th>
-          <th class="p-2 border">MATERIAL</th>
-          <th class="p-2 border">CANTIDAD_DISPONIBLE</th>
-          <th class="p-2 border">CANTIDAD_MINIMA</th>
-          <th class="p-2 border">ESTADO</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr class="border-t"><td class="p-2 border">1</td><td class="p-2 border">Tela de algodón</td><td class="p-2 border">500</td><td class="p-2 border">100</td><td class="p-2 border">Disponible</td></tr>
-        <tr class="border-t"><td class="p-2 border">2</td><td class="p-2 border">Hilo negro</td><td class="p-2 border">0</td><td class="p-2 border">50</td><td class="p-2 border">No disponible</td></tr>
-        <tr class="border-t"><td class="p-2 border">3</td><td class="p-2 border">Botones</td><td class="p-2 border">1000</td><td class="p-2 border">200</td><td class="p-2 border">Disponible</td></tr>
-        <tr class="border-t"><td class="p-2 border">4</td><td class="p-2 border">Cremalleras</td><td class="p-2 border">300</td><td class="p-2 border">100</td><td class="p-2 border">Disponible</td></tr>
-        <tr class="border-t"><td class="p-2 border">5</td><td class="p-2 border">Forro de tela</td><td class="p-2 border">400</td><td class="p-2 border">150</td><td class="p-2 border">Disponible</td></tr>
-      </tbody>
-    </table>
-  </div>
-`};
-
-    function mostrarSeccion(nombre) {
-      content.innerHTML = secciones[nombre];
-
-      // Colorear el botón activo
-      for (const key in botones) {
-        botones[key].classList.remove("text-teal-600", "font-semibold");
-        botones[key].classList.add("text-gray-500");
-      }
-      botones[nombre].classList.remove("text-gray-500");
-      botones[nombre].classList.add("text-teal-600", "font-semibold");
-      function inicializarGraficas() {
-  if (document.getElementById("graficaPedidos")) {
-    new Chart(document.getElementById("graficaPedidos"), {
-      type: 'doughnut',
-      data: {
-        labels: ["En proceso", "Completado", "Pendiente"],
-        datasets: [{
-          label: "Pedidos",
-          data: [14, 5, 5],
-          backgroundColor: ["#0d9488", "#b45309", "#a855f7"],
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: {
-          legend: {
-            position: "bottom"
-          }
-        }
-      }
-    });
-  }
-
-  if (document.getElementById("graficaDisponibilidad")) {
-    new Chart(document.getElementById("graficaDisponibilidad"), {
-      type: 'bar',
-      data: {
-        labels: ["Tela de algodón", "Hilo negro", "Botones", "Cremalleras", "Forro de tela"],
-        datasets: [{
-          label: "Cantidad disponible",
-          data: [500, 0, 1000, 300, 600],
-          backgroundColor: "#0d9488"
-        }]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    });
-  }
+// Validar sesión
+if (!jerarquia) {
+    window.location.href = "index.html";
 }
 
-// Llamar cuando se muestra la sección resumen
-const originalMostrarSeccion = mostrarSeccion;
-mostrarSeccion = function(nombre) {
-  originalMostrarSeccion(nombre);
-    if (nombre === "asignacion") {
-      fetch("api/tareas/get_operadores.php")
-        .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data)) {
-          if (jerarquia === "2") {
-            const miTarea = data.find(op => op.nombre === nombreUsuario);
-            if (miTarea) {
-              const contenedor = document.getElementById("contenedor-disponibles");
-              if (contenedor) {
-                contenedor.innerHTML = `
-    <div class="p-6 bg-white border-2 border-teal-600 rounded-lg shadow-lg col-span-2">
-      <h2 class="text-3xl font-bold text-teal-700 mb-4">Tarea Asignada</h2>
-      <h3 class="text-xl font-semibold text-gray-800">${miTarea.tarea_asignada}</h3>
-      <p class="text-lg mt-3 text-gray-700">${miTarea.descripcion}</p>
-    </div>
-  `;
-              }
-            }
-          }
-          const asignacionDiv = document.getElementById("contenedor-operadores");
-          if (asignacionDiv) {
-            asignacionDiv.innerHTML = ""; // limpiar contenido anterior
-            data.forEach(op => {
-              const div = document.createElement("div");
-              div.className = "p-3 bg-gray-100 rounded";
-              div.innerHTML = `
-  <div class="flex justify-between items-center">
-    <div>
-      <span class="text-teal-600 font-bold text-sm">${op.especialidad}</span><br>
-      ${op.nombre} - ${op.tarea_asignada}
-    </div>
-    <div>
-      <button 
-        onclick="asignarTarea(${op.id}, '${op.nombre}')"
-        class="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1 rounded"
-      >
-        Editar tarea
-      </button>
-      ${jerarquia !== "2" ? `
-        <button 
-          onclick="gestionarOperador(${op.id}, '${op.nombre}', '${op.especialidad}')"
-          class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs px-3 py-1 rounded ml-2"
-        >
-          Opciones
-        </button>
-      ` : ""}
-    </div>
-  </div>
-`;
-              asignacionDiv.appendChild(div);
-            });
-          }
-          const disponiblesDiv = document.getElementById("contenedor-disponibles");
-          if (disponiblesDiv) {
-            disponiblesDiv.innerHTML = "";
-            data.forEach(op => {
-              const div = document.createElement("div");
-              div.innerHTML = `<span class="text-teal-600 font-bold">${op.especialidad.toUpperCase()}</span><br>${op.nombre}`;
-              disponiblesDiv.appendChild(div);
-            });
-          }
-        }
-      })
-      .catch(err => console.error("Error cargando operadores:", err));
-  }
-  if (nombre === "resumen") {
-    setTimeout(inicializarGraficas, 100); // dar tiempo a que se renderice el DOM
-  }
-  if (nombre !== "logistica") {
-    const logisticaDiv = document.getElementById("logistica-screen");
-    if (logisticaDiv) {
-      logisticaDiv.style.display = "none";
-    }
-  }
+// Configurar info de usuario
+document.getElementById("info-usuario").textContent = nombreUsuario || "Usuario";
+document.getElementById("info-jerarquia").textContent = jerarquia === "1" ? "Administrador" : "Operador";
+
+// === SECCIONES DEL SISTEMA ===
+const secciones = {
+    resumen: `
+        <div class="max-w-6xl mx-auto space-y-8">
+            <h2 class="text-3xl font-bold text-center mb-8">📊 Dashboard - Resumen General</h2>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="neumorphic p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Estado de Pedidos</h3>
+                    <canvas id="graficaPedidos" style="max-width: 400px; max-height: 400px; margin: 0 auto;"></canvas>
+                </div>
+                
+                <div class="neumorphic p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Inventario Disponible</h3>
+                    <canvas id="graficaDisponibilidad"></canvas>
+                </div>
+            </div>
+            
+            <div class="neumorphic p-6">
+                <h3 class="text-xl font-semibold mb-4">🔄 Seguimiento de Producción</h3>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead>
+                            <tr>
+                                <th>ID Orden</th>
+                                <th>Producto</th>
+                                <th>Cantidad</th>
+                                <th>Estado</th>
+                                <th>Operadores</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tabla-seguimiento-produccion">
+                            <tr><td colspan="5" class="text-center py-4">Cargando datos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `,
+
+    asignacion: `
+        <div class="max-w-6xl mx-auto space-y-8">
+            <h2 class="text-3xl font-bold text-center mb-8">👥 Gestión de Operadores</h2>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Panel de operadores disponibles -->
+                <div class="neumorphic p-6">
+                    <h3 class="text-xl font-semibold mb-4 text-center">Estado Actual</h3>
+                    <div id="contenedor-disponibles" class="space-y-3">
+                        <div class="text-center text-gray-500 py-4">Cargando operadores...</div>
+                    </div>
+                </div>
+                
+                <!-- Panel de gestión completa -->
+                <div class="lg:col-span-2 neumorphic p-6">
+                    <div id="contenedor-operadores">
+                        <div class="text-center text-gray-500 py-8">Cargando gestión de operadores...</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Panel de estadísticas rápidas -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="neumorphic p-4 text-center">
+                    <div class="text-2xl font-bold text-green-600" id="stat-disponibles">-</div>
+                    <div class="text-sm text-gray-600">Disponibles</div>
+                </div>
+                <div class="neumorphic p-4 text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="stat-ocupados">-</div>
+                    <div class="text-sm text-gray-600">En Trabajo</div>
+                </div>
+                <div class="neumorphic p-4 text-center">
+                    <div class="text-2xl font-bold text-yellow-600" id="stat-especialidades">-</div>
+                    <div class="text-sm text-gray-600">Especialidades</div>
+                </div>
+                <div class="neumorphic p-4 text-center">
+                    <div class="text-2xl font-bold text-purple-600" id="stat-total">-</div>
+                    <div class="text-sm text-gray-600">Total</div>
+                </div>
+            </div>
+        </div>
+    `,
+
+   logistica: `
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-3xl font-bold text-center mb-8">📦 Gestión de Inventario</h2>
+            
+            <!-- Panel de alertas críticas (se muestra automáticamente si hay materiales críticos) -->
+            
+            <div class="neumorphic p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-semibold">Inventario de Materiales</h3>
+                    <div class="flex gap-2">
+                        <button onclick="mostrarPanelCriticos()" 
+                                class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                            🚨 Materiales Críticos
+                        </button>
+                        <button onclick="mostrarFormularioInventario('agregar')" 
+                                class="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700">
+                            + Agregar Material
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="bg-blue-50 border border-blue-200 p-4 rounded mb-4">
+                    <h4 class="font-semibold text-blue-800 mb-2">💡 Sistema de Alertas Automáticas</h4>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl">🚨</span>
+                            <div>
+                                <div class="font-medium text-red-700">AGOTADO</div>
+                                <div class="text-gray-600">Cantidad = 0</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl">⚠️</span>
+                            <div>
+                                <div class="font-medium text-orange-700">CRÍTICO</div>
+                                <div class="text-gray-600">≤ Cantidad Mínima</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl">🟨</span>
+                            <div>
+                                <div class="font-medium text-yellow-700">BAJO</div>
+                                <div class="text-gray-600">≤ 1.5x Mínima</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-2xl">✅</span>
+                            <div>
+                                <div class="font-medium text-green-700">NORMAL</div>
+                                <div class="text-gray-600">> 1.5x Mínima</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="overflow-x-auto">
+                    <table id="tablaInventario" class="w-full">
+                        <thead>
+                            <tr>
+                                <th class="p-3 text-left">ID</th>
+                                <th class="p-3 text-left">Material</th>
+                                <th class="p-3 text-center">Cantidad Disponible</th>
+                                <th class="p-3 text-center">Cantidad Mínima</th>
+                                <th class="p-3 text-center">Estado</th>
+                                <th class="p-3 text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tablaInventarioBody">
+                            <tr><td colspan="6" class="text-center py-4">Cargando inventario...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4 flex justify-between items-center">
+                    <div class="text-sm text-gray-600">
+                        💡 <strong>Tip:</strong> Los materiales con alertas rojas/naranjas requieren reabastecimiento inmediato
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick="generarReportePDF()" 
+                                class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                            📄 Reporte Completo
+                        </button>
+                        <button onclick="generarReporteCriticos()" 
+                                class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700">
+                            📄 Reporte Críticos
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+         
+    `,
+
+    fichas: `
+        <div class="max-w-6xl mx-auto">
+            <div class="flex justify-between items-center mb-8">
+                <h2 class="text-3xl font-bold">📋 Fichas Técnicas</h2>
+                <button onclick="mostrarFormularioFicha()" 
+                        class="bg-teal-600 text-white px-4 py-2 rounded hover:bg-teal-700">
+                    + Nueva Ficha
+                </button>
+            </div>
+            <div id="fichas-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        </div>
+    `,
+
+    pedidos: `
+        <div class="max-w-6xl mx-auto space-y-8">
+            <h2 class="text-3xl font-bold text-center mb-8">🛍️ Gestión de Pedidos</h2>
+            
+            <div class="neumorphic p-6">
+                <h3 class="text-xl font-semibold mb-4">Registrar Nuevo Pedido</h3>
+                <form id="formPedido" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" id="cliente" placeholder="Nombre del Cliente" 
+                           class="p-3 rounded neumorphic-inner" required>
+                    <input type="number" id="cantidad" placeholder="Cantidad" 
+                           class="p-3 rounded neumorphic-inner" required>
+                    <input type="date" id="fechaRegistro" 
+                           class="p-3 rounded neumorphic-inner" required>
+                    <input type="date" id="fechaEntrega" 
+                           class="p-3 rounded neumorphic-inner" required>
+                    <select id="selectFichaPedido" name="producto" 
+                            class="p-3 rounded neumorphic-inner" required>
+                        <option value="">Seleccione un producto</option>
+                    </select>
+                    <div class="flex justify-center">
+                        <button type="submit" 
+                                class="px-6 py-3 bg-blue-500 text-white rounded shadow-md hover:bg-blue-600">
+                            Registrar Pedido
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="neumorphic p-6">
+                <h3 class="text-xl font-semibold mb-4">Pedidos Registrados</h3>
+                <div class="overflow-x-auto">
+                    <table id="tablaPedidos" class="w-full">
+                        <thead>
+                            <tr>
+                                <th class="p-3 text-left">Cliente</th>
+                                <th class="p-3 text-left">Producto</th>
+                                <th class="p-3 text-left">Cantidad</th>
+                                <th class="p-3 text-left">Fecha Registro</th>
+                                <th class="p-3 text-left">Fecha Entrega</th>
+                                <th class="p-3 text-left">Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="6" class="text-center py-4">Cargando pedidos...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    `
 };
+
+// === FUNCIONES PRINCIPALES ===
+
+// Variables globales para gráficas
+let graficaPedidosInstance = null;
+let graficaDisponibilidadInstance = null;
+
+function mostrarSeccion(nombre) {
+    const content = document.getElementById("content");
+    content.innerHTML = secciones[nombre];
+
+    // Actualizar botones activos
+    const botones = ['resumen', 'logistica', 'fichas', 'pedidos', 'asignacion'];
+    botones.forEach(btn => {
+        const elemento = document.getElementById(`btn-${btn}`);
+        if (elemento) {
+            elemento.classList.remove("text-teal-600");
+            elemento.classList.add("text-gray-500");
+        }
+    });
+    
+    const botonActivo = document.getElementById(`btn-${nombre}`);
+    if (botonActivo) {
+        botonActivo.classList.remove("text-gray-500");
+        botonActivo.classList.add("text-teal-600");
     }
 
-    // Mostrar por defecto
-    // Mostrar u ocultar botones del menú según jerarquía
-    if (jerarquia === "2") {
-      // Ocultar secciones exclusivas del administrador
-      const btnResumen = document.getElementById("btn-resumen");
-      const btnLogistica = document.getElementById("btn-logistica");
-      if (btnResumen) btnResumen.style.display = "none";
-      if (btnLogistica) btnLogistica.style.display = "none";
+    // Llamar función externa de carga
+    cargarDatosSeccion(nombre);
+}
+
+function cargarDatosSeccion(nombre) {
+    switch (nombre) {
+        case 'resumen':
+            cargarDashboard();
+            break;
+        case 'logistica':
+            cargarInventario();
+            break;
+        case 'fichas':
+            if (typeof cargarFichasTecnicas === "function") {
+                try {
+                    cargarFichasTecnicas();
+                } catch (error) {
+                    console.error("Error ejecutando cargarFichasTecnicas():", error);
+                    if (typeof mostrarNotificacion === "function") {
+                        mostrarNotificacion("No se pudo cargar las fichas técnicas", "error");
+                    }
+                }
+            } else {
+                console.warn("Función cargarFichasTecnicas no está definida.");
+                if (typeof mostrarNotificacion === "function") {
+                    mostrarNotificacion("Función de fichas no disponible", "error");
+                }
+            }
+            break;
+        case 'pedidos':
+            cargarPedidos();
+            configurarFormularioPedidos();
+            break;
+        case 'asignacion':
+            cargarOperadoresYEstadisticas();
+            break;
     }
-    // Mostrar sección inicial según jerarquía
-    mostrarSeccion(jerarquia === "2" ? "asignacion" : "resumen");
+}
+
+// === FUNCIONES ESPECÍFICAS ===
+
+function cargarDashboard() {
+    // Cargar gráfica de pedidos
+    setTimeout(() => {
+        const canvasPedidos = document.getElementById("graficaPedidos");
+        if (canvasPedidos) {
+            const ctx = canvasPedidos.getContext('2d');
+            if (graficaPedidosInstance) {
+                graficaPedidosInstance.destroy();
+            }
+            graficaPedidosInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ["En proceso", "Completado", "Pendiente"],
+                    datasets: [{
+                        data: [14, 5, 5],
+                        backgroundColor: ["#0d9488", "#b45309", "#a855f7"]
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: "bottom" } }
+                }
+            });
+        }
+    }, 100);
+
+    // Cargar gráfica de inventario
+    cargarGraficaInventario();
     
-    function asignarTarea(id, nombre) {
-  fetch("api/tareas/get_tareas.php")
-    .then(res => res.json())
-    .then(tareas => {
-      const select = document.createElement("select");
-      select.className = "border p-2 rounded w-full mt-2";
-      tareas.forEach(t => {
-        const option = document.createElement("option");
-        option.value = t;
-        option.textContent = t;
-        select.appendChild(option);
-      });
-  
-      const modal = document.createElement("div");
-      modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
-      
-      const modalContent = document.createElement("div");
-      modalContent.className = "bg-white p-6 rounded shadow-md w-80";
-      
-      const heading = document.createElement("h2");
-      heading.className = "text-lg font-semibold mb-2";
-      heading.textContent = `Asignar nueva tarea a ${nombre}`;
-      
-      const btns = document.createElement("div");
-      btns.className = "mt-4 flex justify-end space-x-2";
-      
-      const btnCancelar = document.createElement("button");
-      btnCancelar.textContent = "Cancelar";
-      btnCancelar.className = "bg-gray-300 hover:bg-gray-400 text-sm px-3 py-1 rounded";
-      btnCancelar.id = "cancelar";
-      
-      const btnGuardar = document.createElement("button");
-      btnGuardar.textContent = "Guardar";
-      btnGuardar.className = "bg-teal-600 text-white hover:bg-teal-700 text-sm px-3 py-1 rounded";
-      btnGuardar.id = "guardar";
-      
-      btns.appendChild(btnCancelar);
-      btns.appendChild(btnGuardar);
-      
-      modalContent.appendChild(heading);
-      modalContent.appendChild(select);
-      modalContent.appendChild(btns);
-      modal.appendChild(modalContent);
-      document.body.appendChild(modal);
-  
-      document.getElementById("cancelar").onclick = () => document.body.removeChild(modal);
-      document.getElementById("guardar").onclick = () => {
-        const nuevaTarea = select.value;
-        fetch(`api/tareas/update_tarea_operador.php?jerarquia=${jerarquia}`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ id, tarea_asignada: nuevaTarea })
-        })
+    // Cargar seguimiento de producción
+    cargarSeguimientoProduccion();
+}
+
+function cargarGraficaInventario() {
+    fetch("api/inventario/get_inventario.php")
         .then(res => res.json())
         .then(data => {
-          console.log("Respuesta del servidor al actualizar tarea:", data);
-          const notif = document.getElementById("notificacion");
-          if (data.success) {
-            notif.textContent = "Tarea actualizada correctamente";
-            mostrarSeccion("asignacion");
-          } else {
-            notif.textContent = "Error al actualizar tarea";
-          }
-          notif.classList.remove("hidden");
-          setTimeout(() => notif.classList.add("hidden"), 3000);
+            let inventarioArray = data.success ? data.data : [];
+            const nombres = inventarioArray.map(item => item.Material);
+            const cantidades = inventarioArray.map(item => parseInt(item.cantidad_disp));
+
+            setTimeout(() => {
+                const canvas = document.getElementById("graficaDisponibilidad");
+                if (canvas) {
+                    const ctx = canvas.getContext('2d');
+                    if (graficaDisponibilidadInstance) {
+                        graficaDisponibilidadInstance.destroy();
+                    }
+                    graficaDisponibilidadInstance = new Chart(ctx, {
+                        type: 'bar',
+                        data: {
+                            labels: nombres,
+                            datasets: [{
+                                label: 'Cantidad disponible',
+                                data: cantidades,
+                                backgroundColor: '#0d9488'
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            scales: { y: { beginAtZero: true } }
+                        }
+                    });
+                }
+            }, 100);
+        })
+        .catch(err => console.error("Error cargando gráfica de inventario:", err));
+}
+
+function cargarSeguimientoProduccion() {
+    fetch("api/produccion/get_seguimiento.php")
+        .then(res => res.json())
+        .then(data => {
+            const tabla = document.getElementById("tabla-seguimiento-produccion");
+            if (!tabla) return;
+
+            tabla.innerHTML = "";
+            if (Array.isArray(data) && data.length > 0) {
+                data.forEach(item => {
+                    const fila = document.createElement("tr");
+                    const estadoClass = item.estado === "Completado" 
+                        ? 'bg-green-200 text-green-800' 
+                        : 'bg-yellow-200 text-yellow-800';
+                    
+                    fila.innerHTML = `
+                        <td class="p-3">${item.id_orden}</td>
+                        <td class="p-3">${item.producto}</td>
+                        <td class="p-3">${item.cantidad}</td>
+                        <td class="p-3">
+                            <span class="px-2 py-1 rounded text-xs ${estadoClass}">
+                                ${item.estado}
+                            </span>
+                        </td>
+                        <td class="p-3">${item.operadoras.join(', ') || 'N/D'}</td>
+                    `;
+                    tabla.appendChild(fila);
+                });
+            } else {
+                tabla.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-gray-500">No hay órdenes de producción</td></tr>`;
+            }
         })
         .catch(err => {
-          console.error("Error al enviar actualización:", err);
-          alert("No se pudo actualizar la tarea.");
+            console.error("Error cargando seguimiento:", err);
+            const tabla = document.getElementById("tabla-seguimiento-produccion");
+            if (tabla) {
+                tabla.innerHTML = `<tr><td colspan="5" class="text-center py-4 text-red-500">Error cargando datos</td></tr>`;
+            }
         });
-        document.body.removeChild(modal);
-      };
-    })
-    .catch(err => {
-      console.error("Error al cargar lista de tareas:", err);
-      alert("No se pudo cargar la lista de tareas.");
-    });
-    }
+}
 
-    function gestionarOperador(id, nombre, especialidad) {
-      const modal = document.createElement("div");
-      modal.className = "fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50";
+function cargarFichasTecnicas() {
+    fetch("api/fichas/get_fichas.php")
+        .then(res => res.json())
+        .then(data => {
+            const container = document.getElementById("fichas-container");
+            if (!container) return;
 
-      const modalContent = document.createElement("div");
-      modalContent.className = "bg-white p-6 rounded shadow-md w-80";
+            container.innerHTML = "";
+            if (Array.isArray(data) && data.length > 0) {
+                data.forEach(ficha => {
+                    const card = document.createElement("div");
+                    card.className = "neumorphic p-4";
+                    card.innerHTML = `
+                        <img src="img/${ficha.sku || 'placeholder'}.jpg" 
+                             alt="${ficha.nombre}" 
+                             class="w-full h-48 object-cover rounded mb-3"
+                             onerror="this.src='img/placeholder.jpg'">
+                        <h3 class="text-lg font-semibold mb-2">${ficha.nombre}</h3>
+                        <p class="text-sm text-gray-600 mb-2">${ficha.descripcion}</p>
+                        <div class="text-xs text-gray-500 space-y-1 mb-3">
+                            <p><strong>Botones:</strong> ${ficha.boton}</p>
+                            <p><strong>Cierres:</strong> ${ficha.cierre}</p>
+                            <p><strong>Hilos:</strong> ${ficha.hilo}</p>
+                            <p><strong>SKU:</strong> ${ficha.sku}</p>
+                        </div>
+                        <div class="flex justify-end gap-2">
+                            <button onclick="editarFicha(${ficha.idfic})" 
+                                    class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs">
+                                Editar
+                            </button>
+                            <button onclick="eliminarFicha(${ficha.idfic})" 
+                                    class="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs">
+                                Eliminar
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(card);
+                });
+            } else {
+                container.innerHTML = `<p class="text-center text-gray-500 col-span-full">No hay fichas técnicas registradas</p>`;
+            }
+        })
+        .catch(err => {
+            console.error("Error cargando fichas:", err);
+            const container = document.getElementById("fichas-container");
+            if (container) {
+                container.innerHTML = `<p class="text-center text-red-500 col-span-full">Error cargando fichas técnicas</p>`;
+            }
+        });
+}
 
-      const title = document.createElement("h2");
-      title.className = "text-lg font-semibold mb-2";
-      title.textContent = `Gestionar operador: ${nombre}`;
+function cargarPedidos() {
+    fetch("api/pedidos/listar_pedidos.php")
+        .then(res => res.json())
+        .then(data => {
+            const tabla = document.getElementById("tablaPedidos");
+            const tbody = tabla ? tabla.querySelector("tbody") : null;
+            if (!tbody) return;
 
-      const nombreInput = document.createElement("input");
-      nombreInput.value = nombre;
-      nombreInput.placeholder = "Nombre";
-      nombreInput.className = "w-full border p-2 mb-2 text-sm rounded";
+            tbody.innerHTML = "";
+            if (Array.isArray(data) && data.length > 0) {
+                data.forEach(pedido => {
+                    const tr = document.createElement("tr");
+                    tr.className = "hover:bg-gray-50";
+                    tr.innerHTML = `
+                        <td class="p-3">${pedido.nombrecliente}</td>
+                        <td class="p-3">${pedido.pro_nombre}</td>
+                        <td class="p-3">${pedido.cantidad}</td>
+                        <td class="p-3">${pedido.fecha_registro}</td>
+                        <td class="p-3">${pedido.fecha_entrega}</td>
+                        <td class="p-3">
+                            <span class="px-2 py-1 rounded text-xs ${getEstadoPedidoClass(pedido.estado)}">
+                                ${pedido.estado}
+                            </span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-gray-500">No hay pedidos registrados</td></tr>`;
+            }
+        })
+        .catch(err => {
+            console.error("Error cargando pedidos:", err);
+            const tabla = document.getElementById("tablaPedidos");
+            const tbody = tabla ? tabla.querySelector("tbody") : null;
+            if (tbody) {
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-4 text-red-500">Error cargando pedidos</td></tr>`;
+            }
+        });
+}
 
-      const especialidadInput = document.createElement("input");
-      especialidadInput.value = especialidad;
-      especialidadInput.placeholder = "Especialidad";
-      especialidadInput.className = "w-full border p-2 mb-2 text-sm rounded";
-
-      const btns = document.createElement("div");
-      btns.className = "flex justify-between mt-4";
-
-      const btnActualizar = document.createElement("button");
-      btnActualizar.textContent = "Actualizar";
-      btnActualizar.className = "bg-blue-500 text-white px-3 py-1 rounded text-sm";
-
-      const btnEliminar = document.createElement("button");
-      btnEliminar.textContent = "Eliminar";
-      btnEliminar.className = "bg-red-500 text-white px-3 py-1 rounded text-sm";
-
-      const btnCancelar = document.createElement("button");
-      btnCancelar.textContent = "Cancelar";
-      btnCancelar.className = "bg-gray-300 px-3 py-1 rounded text-sm";
-
-      btns.appendChild(btnActualizar);
-      btns.appendChild(btnEliminar);
-      btns.appendChild(btnCancelar);
-
-      modalContent.appendChild(title);
-      modalContent.appendChild(nombreInput);
-      modalContent.appendChild(especialidadInput);
-      modalContent.appendChild(btns);
-      modal.appendChild(modalContent);
-      document.body.appendChild(modal);
-
-      btnCancelar.onclick = () => document.body.removeChild(modal);
-
-      btnActualizar.onclick = () => {
-        const idValido = parseInt(id);
-        if (!nombreInput.value.trim() || !especialidadInput.value.trim() || isNaN(idValido)) {
-          alert("Datos inválidos.");
-          return;
+function configurarFormularioPedidos() {
+    // Cargar productos para el select
+    setTimeout(() => {
+        const select = document.getElementById("selectFichaPedido");
+        if (select) {
+            fetch("api/fichas/get_fichas_select.php")
+                .then(res => res.json())
+                .then(data => {
+                    select.innerHTML = '<option value="">Seleccione un producto</option>';
+                    if (Array.isArray(data)) {
+                        data.forEach(ficha => {
+                            const option = document.createElement("option");
+                            option.value = ficha.id;
+                            option.textContent = ficha.nombre;
+                            select.appendChild(option);
+                        });
+                    }
+                })
+                .catch(err => console.error("Error cargando productos:", err));
         }
 
-        console.log("Enviando actualización:", {
-          accion: "actualizar",
-          id: idValido,
-          nombre: nombreInput.value,
-          especialidad: especialidadInput.value
-        });
+        // Configurar envío del formulario
+        const form = document.getElementById("formPedido");
+        if (form && !form.dataset.configured) {
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                
+                const datos = {
+                    cliente: document.getElementById("cliente").value.trim(),
+                    cantidad: document.getElementById("cantidad").value.trim(),
+                    fecha_registro: document.getElementById("fechaRegistro").value.trim(),
+                    fecha_entrega: document.getElementById("fechaEntrega").value.trim(),
+                    producto: document.getElementById("selectFichaPedido").value.trim()
+                };
 
-        fetch("api/tareas/update_operador.php", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            accion: "actualizar",
-            id: idValido,
-            nombre: nombreInput.value,
-            especialidad: especialidadInput.value
-          })
-        })
-        .then(async res => {
-          const texto = await res.text();
-          console.log("Respuesta cruda del servidor:", texto);
-          try {
-            const data = JSON.parse(texto);
-            if (data.success) {
-              alert("Operador actualizado");
-              mostrarSeccion("asignacion");
-            } else {
-              alert("Error: " + data.error);
+                if (!datos.cliente || !datos.cantidad || !datos.fecha_registro || !datos.fecha_entrega || !datos.producto) {
+                    alert("Por favor complete todos los campos");
+                    return;
+                }
+
+                try {
+                    const res = await fetch("api/pedidos/registrar_pedido.php", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(datos)
+                    });
+
+                    const result = await res.json();
+                    if (result.success) {
+                        alert("Pedido registrado exitosamente");
+                        form.reset();
+                        cargarPedidos();
+                        mostrarNotificacion("Pedido registrado correctamente");
+                    } else {
+                        alert("Error: " + (result.error || "Error desconocido"));
+                    }
+                } catch (err) {
+                    console.error("Error registrando pedido:", err);
+                    alert("Error de conexión con el servidor");
+                }
+            });
+            form.dataset.configured = "true";
+        }
+    }, 300);
+}
+
+// === NUEVA FUNCIÓN PARA OPERADORES ===
+function cargarOperadoresYEstadisticas() {
+    // Inicializar el módulo de operadores
+    if (typeof inicializarOperadores === 'function') {
+        inicializarOperadores();
+    }
+    
+    // Cargar estadísticas después de un breve delay para que los datos estén disponibles
+    setTimeout(actualizarEstadisticasOperadores, 1000);
+}
+
+function actualizarEstadisticasOperadores() {
+    fetch("api/tareas/operadores.php")
+        .then(res => res.json())
+        .then(data => {
+            if (data.success && Array.isArray(data.data)) {
+                const operadores = data.data;
+                
+                // Calcular estadísticas
+                const disponibles = operadores.filter(op => op.estado === 'disponible').length;
+                const ocupados = operadores.filter(op => op.estado === 'ocupado').length;
+                const especialidades = [...new Set(operadores.map(op => op.especialidad))].length;
+                const total = operadores.length;
+
+                // Actualizar elementos de estadísticas
+                const statElements = {
+                    'stat-disponibles': disponibles,
+                    'stat-ocupados': ocupados,
+                    'stat-especialidades': especialidades,
+                    'stat-total': total
+                };
+
+                Object.entries(statElements).forEach(([id, value]) => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.textContent = value;
+                    }
+                });
             }
-          } catch (err) {
-            console.error("Error al parsear JSON:", err);
-            console.log("Respuesta que falló al parsear:", texto);
-            alert("La respuesta del servidor no es válida.");
-          }
+        })
+        .catch(err => console.error("Error cargando estadísticas de operadores:", err));
+}
+
+// === FUNCIONES AUXILIARES ===
+
+function getEstadoPedidoClass(estado) {
+    switch (estado?.toLowerCase()) {
+        case 'completado': return 'bg-green-100 text-green-800';
+        case 'en_produccion': return 'bg-blue-100 text-blue-800';
+        case 'confirmado': return 'bg-yellow-100 text-yellow-800';
+        default: return 'bg-gray-100 text-gray-800';
+    }
+}
+
+function mostrarNotificacion(mensaje, tipo = 'success') {
+    const notif = document.getElementById("notificacion");
+    if (notif) {
+        notif.textContent = mensaje;
+        notif.className = `fixed bottom-20 left-1/2 transform -translate-x-1/2 px-4 py-2 rounded shadow-lg text-sm z-50 ${
+            tipo === 'success' ? 'bg-green-600 text-white' : 'bg-red-600 text-white'
+        }`;
+        notif.classList.remove("hidden");
+        setTimeout(() => notif.classList.add("hidden"), 3000);
+    }
+}
+
+function cerrarSesion() {
+    if (confirm("¿Está seguro de cerrar sesión?")) {
+        localStorage.clear();
+        window.location.href = "index.html";
+    }
+}
+
+// === FUNCIONES PARA FICHAS TÉCNICAS ===
+
+function mostrarFormularioFicha() {
+    alert("Funcionalidad de fichas técnicas - por implementar completamente");
+}
+
+function editarFicha(id) {
+    fetch(`api/fichas/get_ficha.php?id=${id}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                const ficha = data.data;
+                document.getElementById("idFichaEditar").value = ficha.idfic;
+                document.getElementById("nombreFichaEditar").value = ficha.nombre;
+                document.getElementById("descripcionFichaEditar").value = ficha.descripcion;
+                document.getElementById("botonFichaEditar").value = ficha.boton;
+                document.getElementById("cierreFichaEditar").value = ficha.cierre;
+                document.getElementById("hiloFichaEditar").value = ficha.hilo;
+                document.getElementById("formEditarFichaModal").classList.remove("hidden");
+            } else {
+                alert("No se pudo cargar la ficha para editar.");
+            }
         })
         .catch(err => {
-          console.error("Error inesperado al actualizar operador:", err);
+            console.error("Error al cargar ficha:", err);
+            alert("Error de conexión al servidor.");
         });
+}
 
-        document.body.removeChild(modal);
-      };
 
-      btnEliminar.onclick = () => {
-        if (!confirm("¿Estás seguro de eliminar este operador?")) return;
 
-        fetch("./api/tareas/update_operador.php", {
+
+
+
+
+function mostrarFormularioFicha() {
+  const modal = document.getElementById("formFichaModal");
+  if (modal) modal.classList.remove("hidden");
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const form = document.getElementById("formFicha");
+  const cancelarBtn = document.getElementById("btnCancelarFicha");
+
+  if (form && !form.dataset.configurado) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(form);
+      try {
+        const res = await fetch("api/fichas/crear_ficha.php", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accion: "eliminar", id })
+          body: formData
+        });
+        const result = await res.json();
+        if (result.success) {
+          mostrarNotificacion("Ficha registrada correctamente");
+          form.reset();
+          document.getElementById("formFichaModal").classList.add("hidden");
+          cargarFichasTecnicas();
+        } else {
+          alert("Error: " + (result.error || "Error desconocido"));
+        }
+      } catch (err) {
+        console.error("Error registrando ficha:", err);
+        alert("Error de conexión con el servidor");
+      }
+    });
+    form.dataset.configurado = "true";
+  }
+
+  if (cancelarBtn) {
+    cancelarBtn.addEventListener("click", () => {
+      document.getElementById("formFichaModal").classList.add("hidden");
+    });
+  }
+});
+
+
+
+function eliminarFicha(id) {
+    if (confirm("¿Está seguro de eliminar esta ficha técnica?")) {
+        fetch("api/fichas/delete_ficha.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ id })
         })
         .then(res => res.json())
         .then(data => {
-          if (data.success) {
-            alert("Operador eliminado");
-            mostrarSeccion("asignacion");
-          } else {
-            alert("Error: " + data.error);
-          }
+            if (data.success) {
+                mostrarNotificacion("Ficha eliminada correctamente");
+                cargarFichasTecnicas();
+            } else {
+                alert("Error: " + (data.error || "Error desconocido"));
+            }
+        })
+        .catch(err => {
+            console.error("Error eliminando ficha:", err);
+            alert("Error de conexión");
         });
-        document.body.removeChild(modal);
-      };
     }
-  </script>
-  
+}
+
+// === EVENT LISTENERS ===
+
+document.getElementById("btn-ver-perfil").addEventListener("click", () => {
+    const perfilDiv = document.getElementById("perfil-info");
+    perfilDiv.style.display = perfilDiv.style.display === "none" ? "block" : "none";
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+    const formEditar = document.getElementById("formEditarFicha");
+    const cancelarEditarBtn = document.getElementById("btnCancelarEditarFicha");
+
+    if (formEditar && !formEditar.dataset.configurado) {
+        formEditar.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const formData = new FormData(formEditar);
+
+            try {
+                const res = await fetch("api/fichas/editar_ficha.php", {
+                    method: "POST",
+                    body: formData
+                });
+                const result = await res.json();
+                if (result.success) {
+                    mostrarNotificacion("Ficha actualizada correctamente");
+                    formEditar.reset();
+                    document.getElementById("formEditarFichaModal").classList.add("hidden");
+                    cargarFichasTecnicas();
+                } else {
+                    alert("Error: " + (result.error || "Error desconocido"));
+                }
+            } catch (err) {
+                console.error("Error al editar ficha:", err);
+                alert("Error de conexión con el servidor.");
+            }
+        });
+        formEditar.dataset.configurado = "true";
+    }
+
+    if (cancelarEditarBtn) {
+        cancelarEditarBtn.addEventListener("click", () => {
+            document.getElementById("formEditarFichaModal").classList.add("hidden");
+        });
+    }
+});
+
+// === INICIALIZACIÓN ===
+
+// Mostrar sección inicial según jerarquía
+const seccionInicial = jerarquia === "2" ? "asignacion" : "resumen";
+mostrarSeccion(seccionInicial);
+
+</script>
+<!-- Modal para Editar Ficha Técnica -->
+<div id="formEditarFichaModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-white p-6 rounded shadow w-full max-w-lg neumorphic">
+      <h3 class="text-lg font-semibold mb-4">Editar Ficha Técnica</h3>
+      <form id="formEditarFicha" class="space-y-4" enctype="multipart/form-data">
+          <input type="hidden" id="idFichaEditar" name="id">
+          <input type="text" id="nombreFichaEditar" name="nombre" class="w-full border p-2 rounded text-sm neumorphic-inner" placeholder="Nombre del Producto" required>
+          <textarea id="descripcionFichaEditar" name="descripcion" class="w-full border p-2 rounded text-sm neumorphic-inner" placeholder="Descripción" required></textarea>
+          <input type="text" id="botonFichaEditar" name="boton" class="w-full border p-2 rounded text-sm neumorphic-inner" placeholder="Botones utilizados" required>
+          <input type="text" id="cierreFichaEditar" name="cierre" class="w-full border p-2 rounded text-sm neumorphic-inner" placeholder="Tipo de cierre" required>
+          <input type="text" id="hiloFichaEditar" name="hilo" class="w-full border p-2 rounded text-sm neumorphic-inner" placeholder="Tipo de hilo" required>
+          <input type="file" id="fotoFichaEditar" name="foto" accept="image/*" class="w-full border p-2 rounded text-sm neumorphic-inner">
+          <div class="flex justify-end gap-2 pt-2">
+              <button type="button" id="btnCancelarEditarFicha" class="bg-gray-500 text-white px-4 py-2 rounded text-sm">Cancelar</button>
+              <button type="submit" class="bg-teal-600 text-white px-4 py-2 rounded text-sm">Guardar Cambios</button>
+          </div>
+      </form>
+  </div>
+</div>
+
+<!-- Modal de Ficha Técnica - Crear -->
+<div id="formFichaModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+  <div class="bg-white p-6 rounded shadow w-full max-w-lg neumorphic">
+    <h3 class="text-lg font-semibold mb-4">Nueva Ficha Técnica</h3>
+    <form id="formFicha" class="space-y-4" enctype="multipart/form-data">
+      <input type="text" id="nombreFicha" name="nombre" class="w-full border p-2 rounded text-sm neumorphic-inner" placeholder="Nombre del Producto" required>
+      <textarea id="descripcionFicha" name="descripcion" class="w-full border p-2 rounded text-sm neumorphic-inner" placeholder="Descripción" required></textarea>
+      <input type="text" id="botonFicha" name="boton" class="w-full border p-2 rounded text-sm neumorphic-inner" placeholder="Botones utilizados" required>
+      <input type="text" id="cierreFicha" name="cierre" class="w-full border p-2 rounded text-sm neumorphic-inner" placeholder="Tipo de cierre" required>
+      <input type="text" id="hiloFicha" name="hilo" class="w-full border p-2 rounded text-sm neumorphic-inner" placeholder="Tipo de hilo" required>
+      
+      <!-- Entrada de imagen: permite cámara o galería -->
+      <input type="file" id="fotoFicha" name="foto" accept="image/*" capture="environment" class="w-full border p-2 rounded text-sm neumorphic-inner" required>
+      
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" id="btnCancelarFicha" class="bg-gray-500 text-white px-4 py-2 rounded text-sm">Cancelar</button>
+        <button type="submit" class="bg-teal-600 text-white px-4 py-2 rounded text-sm">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
 
 </body>
 </html>

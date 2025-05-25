@@ -43,17 +43,22 @@ document.addEventListener("DOMContentLoaded", function () {
                     return response.json();
                 })
                 .then(data => {
-                    if (data.success) {
-                        if (data.jerarquia === 1) {
+                    if (data.success && data.jerarquia !== undefined) {
+                        const jerarquia = parseInt(data.jerarquia, 10);
+                        localStorage.setItem("jerarquiaUsuario", jerarquia);
+                        localStorage.setItem("nombreUsuario", data.nombre);
+
+                        if (jerarquia === 1) {
                             console.log("Redirigiendo a test.html");
                             window.location.href = "test.html";
-                        } else if (data.jerarquia === 2) {
-                            window.location.href = "operador_dashboard.html";
+                        } else if (jerarquia === 2) {
+                            console.log("Redirigiendo a operador.html");
+                            window.location.href = "operador.html";
                         } else {
                             alert("Rol de usuario no reconocido.");
                         }
                     } else {
-                        alert(data.message);
+                        alert(data.message || "Error en el inicio de sesión.");
                     }
                 })
                 .catch(error => {
@@ -76,7 +81,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (debugButton) {
         debugButton.addEventListener("click", function () {
             console.log("Botón de depuración clickeado");
-            window.location.href = "test.html";
+            window.location.href = "operador.html";
         });
     }
 });
